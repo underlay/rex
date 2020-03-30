@@ -1,0 +1,12 @@
+{
+	"compilerOptions": {
+		"moduleResolution": "node",
+		"sourceMap": true,
+		"esModuleInterop": true,
+		"outDir": "./lib/",
+		"noImplicitAny": true,
+		"module": "commonjs",
+		"target": "ESNext",
+		"jsx": "react"
+	}
+}
