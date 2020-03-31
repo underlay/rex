@@ -3,7 +3,7 @@ type Schema = {
 	type: "Schema"
 	startActs?: SemAct[]
 	start?: shapeExpr
-	shapes?: shapeExpr[]
+	shapes?: ({ id: string } & shapeExprObject)[]
 }
 
 type shapeExpr = shapeExprObject | shapeExprRef
@@ -16,20 +16,19 @@ type shapeExprObject =
 	| Shape
 	| ShapeExternal
 
-type ShapeOr = { type: "ShapeOr"; id?: shapeExprLabel; shapeExprs: shapeExpr[] }
+type ShapeOr = { type: "ShapeOr"; shapeExprs: shapeExpr[] }
 type ShapeAnd = {
 	type: "ShapeAnd"
 	id?: shapeExprLabel
 	shapeExprs: shapeExpr[]
 }
-type ShapeNot = { type: "ShapeNot"; id?: shapeExprLabel; shapeExpr: shapeExpr }
-type ShapeExternal = { type: "ShapeExternal"; id?: shapeExprLabel }
+type ShapeNot = { type: "ShapeNot"; shapeExpr: shapeExpr }
+type ShapeExternal = { type: "ShapeExternal" }
 type shapeExprRef = shapeExprLabel
 type shapeExprLabel = string
 
 type NodeConstraint = {
 	type: "NodeConstraint"
-	id?: shapeExprLabel
 	nodeKind?: "iri" | "bnode" | "nonliteral" | "literal"
 	datatype?: string
 	// xsFacet*
@@ -82,7 +81,6 @@ type Wildcard = { type: "Wildcard" }
 
 type Shape = {
 	type: "Shape"
-	id?: shapeExprLabel
 	closed?: boolean
 	extra?: string[]
 	expression?: tripleExpr

@@ -10,18 +10,30 @@ declare module "@shex/core" {
 	import { N3Store } from "n3"
 
 	type DB = {}
+	type Start = {}
+	type Index = {
+		tripleExprs: { [id: string]: tripleExprObject }
+		shapeExprs: { [id: string]: shapeExprObject }
+	}
 
 	var Util: {
 		makeN3DB(store: N3Store): DB
+		index(schema: Schema): Index
 	}
 
 	class Validator {
 		static construct(schema: Schema): Validator
 		// validate(db: DB, id: string, start: shapeExpr): ValidationResult
-		validate(db: DB, id: string, start: shapeExpr): shapeTest | Failure
+		validate(
+			db: DB,
+			point: string,
+			shape: shapeExprRef | Start
+		): ShapeTestT | Failure // ???
+		indexTripleConstraints(ref: tripleExprRef): tripleExprObject[]
+		static start: Start
 	}
 
-	interface shapeTest extends ShapeTest<shapeTest> {}
+	interface ShapeTestT extends ShapeTest<ShapeTestT> {}
 
 	type ValidationResult = ShapeAndResults | FailureResult
 	type FailureResult = {
@@ -55,7 +67,10 @@ declare module "@shex/core" {
 		solution: solutions<R>
 	}
 
-	type solutions<R> = EachOfSolutions<R> | TripleConstraintSolutions<R>
+	type solutions<R> =
+		| EachOfSolutions<R>
+		| OneOfSolutions<R>
+		| TripleConstraintSolutions<R>
 
 	type EachOfSolutions<R> = {
 		type: "EachOfSolutions"
@@ -66,6 +81,18 @@ declare module "@shex/core" {
 
 	type EachOfSolution<R> = {
 		type: "EachOfSolution"
+		expressions: solutions<R>[]
+	}
+
+	type OneOfSolutions<R> = {
+		type: "OneOfSolutions"
+		solutions: OneOfSolution<R>[]
+		min?: number
+		max?: number
+	}
+
+	type OneOfSolution<R> = {
+		type: "OneOfSolution"
 		expressions: solutions<R>[]
 	}
 

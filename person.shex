@@ -1,19 +1,20 @@
 PREFIX s: <http://schema.org/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX rex: <http://github.com/underlay/rex#>
 
-start=@_:person-shape
+start=@rex:Person
 
-_:person-shape {
+rex:Person {
   # has a exactly one edge labelled rdf:type
   # pointing to the node s:Person
-  rdf:type [ s:Person ] ,
+  $rex:personType rdf:type [ s:Person ] ,
   
   # has exactly one edge labelled s:name
   # pointing to a literal with a string datatype
-  s:name xsd:string,
+  s:name xsd:string // rex:fill rex:right ,
   
   # has zero or more edges labelled s:children
   # pointing to nodes that also validate this shape
-  s:children @_:person-shape * ,
+  s:children @rex:Person ? // rex:fill rex:left ,
 }
