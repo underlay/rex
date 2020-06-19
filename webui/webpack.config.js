@@ -1,3 +1,5 @@
+const { resolve } = require("path")
+
 module.exports = {
 	// Enable sourcemaps for debugging webpack's output.
 	devtool: "source-map",
@@ -6,6 +8,7 @@ module.exports = {
 
 	output: {
 		filename: "index.min.js",
+		path: resolve(__dirname, "lib"),
 	},
 
 	resolve: {
@@ -23,7 +26,7 @@ module.exports = {
 			{
 				test: /\.(shex|nt|css)$/,
 				exclude: /shex\.js/,
-				options: { publicPath: "dist", name: "[name].[ext]" },
+				options: { publicPath: "lib", name: "[name].[ext]" },
 				loader: "file-loader",
 			},
 			{
@@ -31,11 +34,6 @@ module.exports = {
 				test: /\.js$/,
 				loader: "source-map-loader",
 			},
-			// {
-			// 	test: /\.(t|j)sx?$/,
-			// 	exclude: /node_modules/,
-			// 	use: { loader: "ts-loader" },
-			// },
 			{
 				test: /\.jsx?$/,
 				exclude: /node_modules/,

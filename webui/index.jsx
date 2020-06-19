@@ -15,6 +15,8 @@ import { parseJsonLd } from "../lib/utils.js"
 import { materialize } from "../lib/materialize.js"
 import { Schema } from "../lib/schema.js"
 
+import { cid, serialize } from "ipld-dag-cbor/src/util.js"
+
 const ipfs = IpfsHttpClient("http://localhost:5001")
 
 const documentLoader = NewDwebDocumentLoader(ipfs)
@@ -32,8 +34,8 @@ Promise.all([
 		const props = {
 			shex,
 			assertions: [
-				{ cid: await ipfs.dag.put(a), store: new Store(A) },
-				{ cid: await ipfs.dag.put(b), store: new Store(B) },
+				{ cid: await cid(serialize(a)), store: new Store(A) },
+				{ cid: await cid(serialize(b)), store: new Store(B) },
 			],
 		}
 
@@ -81,9 +83,11 @@ function Index(props) {
 			const newAssertions = []
 			for (const file of event.target.files) {
 				const doc = await file.text().then((text) => JSON.parse(text))
-				const cid = await ipfs.dag.put(doc)
 				const dataset = await parseJsonLd(doc, documentLoader)
-				newAssertions.push({ cid, store: new Store(dataset) })
+				newAssertions.push({
+					cid: await cid(serialize(doc)),
+					store: new Store(dataset),
+				})
 			}
 			setAssertions(newAssertions.concat(assertions))
 		},
