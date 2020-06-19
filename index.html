@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>rex</title>
+		<script
+			defer
+			src="webui/node_modules/react/umd/react.development.js"
+		></script>
+		<script
+			defer
+			src="webui/node_modules/react-dom/umd/react-dom.development.js"
+		></script>
+		<script defer src="webui/lib/index.min.js"></script>
+		<script>
+			if (!("captureStackTrace" in Error)) {
+				Error.captureStackTrace = function () {}
+			}
+		</script>
+		<link href="webui/lib/rdf-cytoscape.css" rel="stylesheet" type="text/css" />
+		<style>
+			main {
+				display: flex;
+			}
+
+			textarea {
+				background-color: mintcream;
+				width: 480px;
+				height: 600px;
+			}
+
+			section {
+				padding: 0 1em;
+				display: flex;
+				flex-direction: column;
+			}
+
+			.rdf-cytoscape {
+				height: 300px;
+				margin: 0;
+			}
+
+			#assertions input[type="file"] {
+				float: right;
+			}
+
+			.assertion {
+				border: inset;
+				margin: 0.5em 0;
+				background-color: floralwhite;
+			}
+
+			.assertion pre {
+				margin: 0.5em;
+			}
+
+			.assertion form {
+				display: flex;
+				align-items: center;
+			}
+
+			.assertion form button {
+				margin: 0.5em;
+			}
+
+			.assertion form label {
+				margin: 0.5em;
+				flex: 1;
+				cursor: pointer;
+				user-select: none;
+			}
+
+			.assertion form label:hover {
+				text-decoration: underline;
+			}
+
+			.assertion form label input[type="checkbox"] {
+				cursor: inherit;
+			}
+
+			.assertion .rdf-cytoscape {
+				border: none;
+				border-top: 1px solid #36454f;
+			}
+
+			#pushout.rdf-cytoscape {
+				width: 1200px;
+				height: 800px;
+				border: inset;
+				overflow: scroll;
+			}
+
+			#pushout.rdf-cytoscape .error {
+				margin: 1em;
+			}
+		</style>
+	</head>
+
+	<body>
+		<main></main>
+	</body>
+</html>

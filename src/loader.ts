@@ -1,60 +1,60 @@
 import ShExCore from "@shexjs/core"
 import ShExParser from "@shexjs/parser"
 
-import { Buffer } from "ipfs-http-client"
-import { TypeOf } from "io-ts/es6/index.js"
-
-import { Schema } from "./schema.js"
-
 const dwebURI = /^dweb:\/ipfs\/([a-z2-7]{59})$/
-async function loadURI(
+async function resolveURI(
 	uri: string,
-	ipfs: Ipfs.CoreAPI
+	ipfs: Ipfs.CoreAPI | null = null
 ): Promise<ShExParser.Schema> {
 	const parser = ShExParser.construct()
 	const match = dwebURI.exec(uri)
-	if (match !== null) {
-		const chunks: Buffer[] = []
+	if (match !== null && ipfs !== null) {
+		let shex = ""
 		for await (const chunk of ipfs.cat(match[1])) {
-			chunks.push(Buffer.from(chunk))
+			shex += chunk.toString()
 		}
-
-		const data = Buffer.concat(chunks)
-		const shex = new TextDecoder().decode(data)
 		return parser.parse(shex)
 	}
 	const shex = await fetch(uri).then((res) => res.text())
 	return parser.parse(shex)
 }
 
-export async function loadSchema(
+export async function loadURI(
 	uri: string,
-	ipfs: Ipfs.CoreAPI
+	ipfs: Ipfs.CoreAPI | null = null
 ): Promise<ShExParser.Schema> {
-	const schema = ShExCore.Util.emptySchema()
+	const merged = ShExCore.Util.emptySchema()
 	const loaded: Set<string> = new Set([])
 	async function load(uri: string) {
 		loaded.add(uri)
-		const s = await loadURI(uri, ipfs)
-		if (Array.isArray(s.imports)) {
-			await Promise.all(s.imports.filter((u) => !loaded.has(u)).map(load))
-			delete s.imports
+		const schema = await resolveURI(uri, ipfs)
+		if (Array.isArray(schema.imports)) {
+			await Promise.all(schema.imports.filter((u) => !loaded.has(u)).map(load))
+			delete schema.imports
 		}
-		ShExCore.Util.merge(schema, s, false, true)
+		ShExCore.Util.merge(merged, schema, false, true)
 	}
 	await load(uri)
-	return schema
+	return merged
 }
 
-export async function loadReductionSchema(
-	uri: string,
-	ipfs: Ipfs.CoreAPI
-): Promise<TypeOf<typeof Schema>> {
-	const schema = await loadSchema(uri, ipfs)
-	const result = Schema.decode(schema)
-	if (result._tag === "Right") {
-		return Promise.resolve(result.right)
-	} else {
-		return Promise.reject(result.left)
+export async function loadText(
+	shex: string,
+	ipfs: Ipfs.CoreAPI | null = null
+): Promise<ShExParser.Schema> {
+	const merged = ShExCore.Util.emptySchema()
+	const loaded: Set<string> = new Set([])
+	async function load(schema: ShExParser.Schema) {
+		ShExCore.Util.merge(merged, schema, false, true)
+		if (Array.isArray(schema.imports)) {
+			await Promise.all(
+				schema.imports
+					.filter((uri) => !loaded.has(uri))
+					.map((schema) => resolveURI(schema, ipfs).then(load))
+			)
+			delete schema.imports
+		}
 	}
+	await load(ShExParser.construct().parse(shex))
+	return merged
 }

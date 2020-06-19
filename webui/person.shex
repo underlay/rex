@@ -1,0 +1,10 @@
+PREFIX schema: <http://schema.org/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX rex: <http://underlay.org/ns/rex#>
+
+_:person bnode {
+  a [ schema:Person ] ;
+  schema:url iri ;
+  schema:name xsd:string ;
+  schema:children @_:person * ;
+} // rex:key schema:url

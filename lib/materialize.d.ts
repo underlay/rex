@@ -1,5 +1,4 @@
 import { TypeOf } from "io-ts/es6/index.js";
-import * as N3 from "n3";
-import RDF from "rdf-js";
+import { Quad, N3Store } from "n3";
 import { Schema } from "./schema.js";
-export declare function materialize(schema: TypeOf<typeof Schema>, datasets: RDF.Quad[][]): N3.Quad[];
+export declare function materialize(schema: TypeOf<typeof Schema>, datasets: N3Store[]): Quad[];

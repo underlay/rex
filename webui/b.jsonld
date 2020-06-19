@@ -1,0 +1,26 @@
+{
+	"@context": {
+		"@vocab": "http://schema.org/",
+		"url": {
+			"@type": "@id"
+		}
+	},
+	"date": "yesterday",
+	"@graph": {
+		"@type": "Person",
+		"name": "John Doe",
+		"url": "http://example.com/john-doe",
+		"children": [
+			{
+				"@type": "Person",
+				"url": "http://example.com/jill",
+				"name": "Jill"
+			},
+			{
+				"@type": "Person",
+				"url": "http://example.com/four",
+				"name": 4
+			}
+		]
+	}
+}

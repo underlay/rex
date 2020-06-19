@@ -1,48 +1,44 @@
-import RDF from "rdf-js"
-import * as N3 from "n3"
+import { Store, DataFactory, N3Store } from "n3"
 
-import { toId, rdfType } from "./utils.js"
+import { toId } from "./utils.js"
 import { shapeExpr } from "./schema.js"
-
-const { Store, DataFactory } = N3
-
-const RDFType = DataFactory.namedNode(rdfType)
+import { rdfTypeNode } from "./vocab.js"
 
 export function cospan(
 	types: Map<string, { type: string; shapeExpr: shapeExpr; key?: string }>,
-	datasets: RDF.Quad[][]
+	datasets: N3Store[]
 ): {
-	coproduct: N3.N3Store
+	coproduct: N3Store
 	components: Map<string, string>
 	inverse: Map<string, Set<string>>
-	pushout: N3.N3Store
+	pushout: N3Store
 } {
 	const coproduct = new Store()
-	for (const [i, dataset] of datasets.entries()) {
-		for (const quad of dataset) {
-			if (quad.subject.termType === "BlankNode") {
-				const value = `d${i}-${quad.subject.value}`
-				quad.subject = DataFactory.blankNode(value) as RDF.Quad_Subject
+	for (const [i, store] of datasets.entries()) {
+		for (const q of store.getQuads(null, null, null, null)) {
+			if (q.subject.termType === "BlankNode") {
+				const value = `d${i}-${q.subject.value}`
+				q.subject = DataFactory.blankNode(value)
 			}
-			if (quad.object.termType === "BlankNode") {
-				const value = `d${i}-${quad.object.value}`
-				quad.object = DataFactory.blankNode(value) as RDF.Quad_Object
+			if (q.object.termType === "BlankNode") {
+				const value = `d${i}-${q.object.value}`
+				q.object = DataFactory.blankNode(value)
 			}
-			if (quad.graph.termType === "BlankNode") {
-				const value = `d${i}-${quad.graph.value}`
-				quad.graph = DataFactory.blankNode(value) as RDF.Quad_Graph
-			} else if (quad.graph.termType === "DefaultGraph") {
-				quad.graph = DataFactory.blankNode(`d${i}`) as RDF.Quad_Graph
+			if (q.graph.termType === "BlankNode") {
+				const value = `d${i}-${q.graph.value}`
+				q.graph = DataFactory.blankNode(value)
+			} else if (q.graph.termType === "DefaultGraph") {
+				q.graph = DataFactory.blankNode(`d${i}`)
 			}
+			coproduct.addQuad(q)
 		}
-		coproduct.addQuads(dataset)
 	}
 
 	const classes: Map<string, Set<string>> = new Map()
 	const partitions: Set<Set<string>> = new Set()
 	for (const { type, key } of types.values()) {
 		const object = DataFactory.namedNode(type)
-		const subjects = coproduct.getSubjects(RDFType, object, null)
+		const subjects = coproduct.getSubjects(rdfTypeNode, object, null)
 		if (key !== undefined) {
 			const pushouts: Map<string, Set<string>> = new Map()
 			for (const subject of subjects) {
@@ -112,28 +108,18 @@ export function cospan(
 	}
 
 	const pushout = new Store()
-	for (const dataset of datasets) {
-		for (const quad of dataset) {
-			if (quad.subject.termType === "BlankNode") {
-				if (components.has(quad.subject.value)) {
-					const v = components.get(quad.subject.value)!
-					quad.subject = DataFactory.blankNode(v)
-				}
-			}
-			if (quad.object.termType === "BlankNode") {
-				if (components.has(quad.object.value)) {
-					quad.object = DataFactory.blankNode(
-						components.get(quad.object.value)!
-					)
-				}
-			}
-			if (quad.graph.termType === "BlankNode") {
-				if (components.has(quad.graph.value)) {
-					quad.graph = DataFactory.blankNode(components.get(quad.graph.value)!)
-				}
-			}
+	for (const quad of coproduct.getQuads(null, null, null, null)) {
+		const q = { ...quad }
+		if (q.subject.termType === "BlankNode" && components.has(q.subject.value)) {
+			q.subject = DataFactory.blankNode(components.get(q.subject.value))
 		}
-		pushout.addQuads(dataset)
+		if (q.object.termType === "BlankNode" && components.has(q.object.value)) {
+			q.object = DataFactory.blankNode(components.get(q.object.value))
+		}
+		if (q.graph.termType === "BlankNode" && components.has(q.graph.value)) {
+			q.graph = DataFactory.blankNode(components.get(q.graph.value))
+		}
+		pushout.addQuad(q.subject, q.predicate, q.object, q.graph)
 	}
 
 	return { coproduct, components, inverse, pushout }

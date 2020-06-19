@@ -1,0 +1,28 @@
+export declare const xsdDateTime = "http://www.w3.org/2001/XMLSchema#dateTime";
+export declare const xsdDate = "http://www.w3.org/2001/XMLSchema#date";
+export declare const xsdBoolean = "http://www.w3.org/2001/XMLSchema#boolean";
+export declare const rdfType = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+export declare const rdfTypeNode: import("n3").NamedNode;
+declare const rexAscending = "http://underlay.org/ns/rex#ascending";
+declare const rexDescending = "http://underlay.org/ns/rex#descending";
+declare const rexGreater = "http://underlay.org/ns/rex#greater";
+declare const rexLesser = "http://underlay.org/ns/rex#lesser";
+declare const rexEarlier = "http://underlay.org/ns/rex#earlier";
+declare const rexLater = "http://underlay.org/ns/rex#later";
+declare const rexAnd = "http://underlay.org/ns/rex#and";
+declare const rexOr = "http://underlay.org/ns/rex#or";
+export declare const defaultSort = "http://underlay.org/ns/rex#ascending";
+export declare type Sort = typeof rexAscending | typeof rexDescending | typeof rexGreater | typeof rexLesser | typeof rexEarlier | typeof rexLater | typeof rexAnd | typeof rexOr;
+export declare const rex: {
+    key: "http://underlay.org/ns/rex#key";
+    sort: "http://underlay.org/ns/rex#sort";
+    ascending: "http://underlay.org/ns/rex#ascending";
+    descending: "http://underlay.org/ns/rex#descending";
+    greater: "http://underlay.org/ns/rex#greater";
+    lesser: "http://underlay.org/ns/rex#lesser";
+    earlier: "http://underlay.org/ns/rex#earlier";
+    later: "http://underlay.org/ns/rex#later";
+    and: "http://underlay.org/ns/rex#and";
+    or: "http://underlay.org/ns/rex#or";
+};
+export {};
