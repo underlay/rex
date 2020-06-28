@@ -1,34 +1,107 @@
+import RDF from "rdf-js"
+import { DataFactory } from "n3"
 import { TypeOf } from "io-ts/es6/index.js"
-import { Quad, DataFactory, N3Store } from "n3"
 
-import {
-	Schema,
-	numericDatatype,
-	temporalDatatype,
-	booleanDatatype,
-} from "./schema.js"
+import { Schema } from "./schema.js"
 import { cospan } from "./cospan.js"
 
-import { toId } from "./utils.js"
+import { toId, fromId } from "./utils.js"
 
-import {
-	Tree,
-	getTypeMap,
-	State,
-	getNodeTerm,
-	Node,
-	Property,
-} from "./state.js"
-import { matchShape } from "./match.js"
+import { Tree, getTypeMap, State, getNodeTerm, Node } from "./state.js"
+import { matchShape, image, preImage } from "./match.js"
 import { collect } from "./collect.js"
 import { rdfTypeNode } from "./vocab.js"
-import { TypedLiteral } from "./satisfies.js"
+import { Order } from "./order.js"
 
-function minTrim(node: Node): boolean {
+function trim(node: Node, state: State): boolean {
 	if (node.termType === "Tree") {
-		for (const [predicate, leaf] of node.properties) {
-			leaf.values = leaf.values.filter(minTrim)
-			if (leaf.values.length < leaf.min) {
+		for (const [predicate, property] of node.properties) {
+			const { graphs, reference, withReference } = property
+			if (graphs !== undefined && reference !== undefined) {
+				const table = state.tables.get(reference)!
+				if (withReference === undefined) {
+					property.values = property.values.filter((node) => {
+						const id = toId(getNodeTerm(node))
+						const graph = graphs.get(id)!
+						for (const name of graph) {
+							const { value } = image(fromId(name), state)
+							if (!table.has(value)) {
+								graph.delete(name)
+							}
+						}
+						if (graph.size === 0) {
+							graphs.delete(id)
+							return false
+						}
+						return true
+					})
+				} else {
+					const ids: Map<string, RDF.Quad_Object> = new Map()
+					const p = DataFactory.namedNode(withReference)
+					let order: Order | null = null
+					for (const tree of table.values()) {
+						const withProperty = tree.properties.get(withReference)
+						if (withProperty !== undefined) {
+							if (order === null) {
+								order = withProperty.order
+							} else if (withProperty.order !== order) {
+								throw new Error("Mismatching orders")
+							}
+
+							for (const value of withProperty.values) {
+								if (value.termType !== "Literal") {
+									throw new Error(
+										"Only literal meta properties can be referenced"
+									)
+								}
+								const coSubjects = state.coproduct.getSubjects(
+									p,
+									getNodeTerm(value),
+									null
+								)
+								for (const coGraph of coSubjects) {
+									const component = state.components.get(coGraph.value)
+									if (
+										coGraph.termType === "BlankNode" &&
+										component === tree.subject.value
+									) {
+										for (const coSubject of preImage(node.subject, state)) {
+											const coObjects = state.coproduct.getObjects(
+												coSubject,
+												predicate,
+												coGraph
+											)
+
+											for (const term of coObjects) {
+												const id = toId(term)
+												const min = ids.get(id)
+												if (
+													min === undefined ||
+													withProperty.order(value, min)
+												) {
+													ids.set(id, value)
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+
+					property.values = property.values.filter((value) =>
+						ids.has(toId(getNodeTerm(value)))
+					)
+
+					property.order = (a: Node, b: Node) => {
+						const A = ids.get(toId(getNodeTerm(a)))!
+						const B = ids.get(toId(getNodeTerm(b)))!
+						return order!(A, B)
+					}
+				}
+			}
+			property.values = property.values.filter((node) => trim(node, state))
+			if (property.values.length < property.min) {
 				return false
 			}
 		}
@@ -36,17 +109,30 @@ function minTrim(node: Node): boolean {
 	return true
 }
 
-function handleDelete(shape: string, subject: string, state: State) {
-	state.tables.get(shape)!.delete(subject)
-	for (const references of state.references.values()) {
-		for (const [i, [[refShape, refSubject]]] of references.entries()) {
-			if (refShape === shape && refSubject === subject) {
-				references.splice(i, 1)
+function deleteReference(
+	shape: string,
+	subjectValue: string,
+	references: Map<string, [string, string][][]>
+) {
+	for (const [key, refs] of references) {
+		for (const [i, [[refShape, refSubject]]] of refs.entries()) {
+			if (refShape === shape && refSubject === subjectValue) {
+				refs.splice(i, 1)
 			}
 		}
+		if (refs.length === 0) {
+			references.delete(key)
+		}
 	}
+}
 
-	const references = state.references.get(`${shape}\t${subject}`)
+function handleDelete(shape: string, subjectValue: string, state: State) {
+	state.tables.get(shape)!.delete(subjectValue)
+	deleteReference(shape, subjectValue, state.references)
+	deleteReference(shape, subjectValue, state.metaReferences)
+
+	const key = `${shape}\t${subjectValue}`
+	const references = state.references.get(key)
 	if (references !== undefined) {
 		for (const [[refShape, refSubject], ...values] of references) {
 			const tree = state.tables.get(refShape)!.get(refSubject)!
@@ -56,54 +142,69 @@ function handleDelete(shape: string, subject: string, state: State) {
 			}
 		}
 	}
+
+	const metaReferences = state.metaReferences.get(key)
+	if (metaReferences !== undefined) {
+		for (const [[refShape, refSubject], ...values] of metaReferences) {
+			const tree = state.tables.get(refShape)!.get(refSubject)!
+			const valid = percolateMeta(subjectValue, tree, values)
+			if (!valid) {
+				handleDelete(refShape, refSubject, state)
+			}
+		}
+	}
 }
 
 function percolate(
 	tree: Tree,
-	[[property, object], ...values]: [string, string][]
+	[[predicate, object], ...values]: [string, string][]
 ): boolean {
-	const leaf = tree.properties.get(property)!
+	const property = tree.properties.get(predicate)!
 	if (values.length === 0) {
-		const index = leaf.values.findIndex(
+		const index = property.values.findIndex(
 			(node) => toId(getNodeTerm(node)) === object
 		)
 		if (index !== -1) {
-			leaf.values.splice(index, 1)
+			property.values.splice(index, 1)
 		}
 	} else {
-		leaf.values = leaf.values.filter(
-			(value) => value.termType !== "Tree" || percolate(value, values)
+		property.values = property.values.filter(
+			(node) => node.termType !== "Tree" || percolate(node, values)
 		)
 	}
-	return leaf.values.length >= leaf.min
+	return property.values.length >= property.min
 }
 
-const isTypedProperty = (
-	property:
-		| Property<Node>
-		| Property<
-				TypedLiteral<numericDatatype | temporalDatatype | booleanDatatype>
-		  >
-): property is Property<
-	TypedLiteral<numericDatatype | temporalDatatype | booleanDatatype>
-> => false
+function percolateMeta(
+	subjectValue: string,
+	tree: Tree,
+	[[predicate, object], ...values]: [string, string][]
+): boolean {
+	const property = tree.properties.get(predicate)!
+	if (values.length === 0) {
+		if (property.reference !== undefined && property.graphs !== undefined) {
+			const graphs = property.graphs.get(object)!
+			graphs.delete(subjectValue)
+			if (graphs.size === 0) {
+				return false
+			}
+		}
+	} else {
+		property.values = property.values.filter(
+			(node) =>
+				node.termType !== "Tree" || percolateMeta(subjectValue, node, values)
+		)
+	}
+	return property.values.length >= property.min
+}
 
-function populateDataset(tree: Tree, dataset: Quad[]) {
-	for (const [key, property] of tree.properties) {
+function populateDataset({ subject, properties }: Tree, dataset: RDF.Quad[]) {
+	for (const [key, property] of properties) {
 		const predicate = DataFactory.namedNode(key)
-		const objects = isTypedProperty(property)
-			? collect<
-					TypedLiteral<numericDatatype | temporalDatatype | booleanDatatype>,
-					Property<
-						TypedLiteral<numericDatatype | temporalDatatype | booleanDatatype>
-					>
-			  >(property)
-			: collect(property)
-		for (const object of objects) {
-			if (object.termType === "Tree") {
-				populateDataset(object, dataset)
-			} else {
-				dataset.push(DataFactory.quad(tree.subject, predicate, object))
+		for (const node of collect(property)) {
+			dataset.push(DataFactory.quad(subject, predicate, getNodeTerm(node)))
+			if (node.termType === "Tree") {
+				populateDataset(node, dataset)
 			}
 		}
 	}
@@ -111,8 +212,8 @@ function populateDataset(tree: Tree, dataset: Quad[]) {
 
 export function materialize(
 	schema: TypeOf<typeof Schema>,
-	datasets: N3Store[]
-): Quad[] {
+	datasets: RDF.Quad[][]
+): RDF.Quad[] {
 	const types = getTypeMap(schema)
 	const state: State = Object.freeze(
 		Object.assign(
@@ -120,14 +221,14 @@ export function materialize(
 				types,
 				tables: new Map(),
 				path: [],
-				values: [],
 				references: new Map(),
+				metaReferences: new Map(),
 			},
 			cospan(types, datasets)
 		)
 	)
 
-	for (const [shape, { type, shapeExpr }] of types) {
+	for (const [id, { type, shapeExpr }] of types) {
 		const table: Map<string, Tree> = new Map()
 		const subjects = state.pushout.getSubjects(
 			rdfTypeNode,
@@ -136,28 +237,39 @@ export function materialize(
 		)
 
 		for (const subject of subjects) {
-			state.path.push([shape, toId(subject)])
-			for (const tree of matchShape(subject, shapeExpr, state)) {
-				table.set(toId(tree.subject), tree)
+			state.path.push([id, subject.value])
+			const tree = matchShape(subject, shapeExpr, state)
+			if (tree !== null) {
+				table.set(subject.value, tree)
 			}
 			state.path.pop()
 		}
 
-		state.tables.set(shape, table)
+		state.tables.set(id, table)
 	}
 
 	// First we trim minimums
 	for (const [shape, table] of state.tables) {
-		for (const [subject, tree] of table) {
-			const valid = minTrim(tree)
+		for (const [subjectValue, tree] of table) {
+			const valid = trim(tree, state)
 			if (!valid) {
-				handleDelete(shape, subject, state)
+				handleDelete(shape, subjectValue, state)
 			}
 		}
 	}
 
+	// The we trim meta annotations
+	// for (const [shape, table] of state.tables) {
+	// 	for (const [subject, tree] of table) {
+	// 		const valid = metaTrim(tree, state)
+	// 		if (!valid) {
+	// 			handleDelete(shape, subject, state)
+	// 		}
+	// 	}
+	// }
+
 	// Then we sort, take maximums, and populate
-	const dataset: Quad[] = []
+	const dataset: RDF.Quad[] = []
 	for (const table of state.tables.values()) {
 		for (const tree of table.values()) {
 			populateDataset(tree, dataset)

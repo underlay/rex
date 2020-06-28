@@ -12,13 +12,17 @@
 		<link href="webui/lib/rdf-cytoscape.css" rel="stylesheet" type="text/css" />
 		<style>
 			main {
+				/* display: flex; */
+			}
+
+			.example {
 				display: flex;
 			}
 
 			textarea {
 				background-color: mintcream;
 				width: 480px;
-				height: 600px;
+				height: 300px;
 			}
 
 			section {
@@ -32,7 +36,7 @@
 				margin: 0;
 			}
 
-			#assertions input[type="file"] {
+			input[type="file"] {
 				float: right;
 			}
 
@@ -75,14 +79,23 @@
 				border-top: 1px solid #36454f;
 			}
 
-			#pushout.rdf-cytoscape {
+			.schema > details > summary > h3 {
+				display: inline-block;
+				margin-bottom: 0;
+			}
+
+			.schema h4 {
+				margin-bottom: 0;
+			}
+
+			.pushout.rdf-cytoscape {
 				width: 1200px;
 				height: 800px;
 				border: inset;
 				overflow: scroll;
 			}
 
-			#pushout.rdf-cytoscape .error {
+			.pushout.rdf-cytoscape .error {
 				margin: 1em;
 			}
 		</style>

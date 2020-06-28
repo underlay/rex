@@ -1,35 +1,24 @@
 import RDF from "rdf-js"
 import { N3Store } from "n3"
 import { TypeOf } from "io-ts/es6/index.js"
-import {
-	ShapeAnd,
-	Schema,
-	getExpressions,
-	numericDatatype,
-	temporalDatatype,
-	booleanDatatype,
-	isEmptyProductShape,
-} from "./schema.js"
-import { TypedLiteral } from "./satisfies.js"
+import { Schema, getExpressions, isEmptyProductShape } from "./schema.js"
+import { Order } from "./order.js"
 
 export type Node = RDF.Quad_Object | Readonly<Tree>
-export type Property<T extends Node> = {
-	order: (a: T, b: T) => boolean
-	values: T[]
+export type Property = {
+	order: Order
+	values: Array<Node>
 	min: number
 	max: number
+	reference?: string
+	withReference?: string
+	graphs?: Map<string, Set<string>>
 }
 
 export interface Tree {
 	termType: "Tree"
 	subject: RDF.Quad_Subject
-	properties: Map<
-		string,
-		| Property<Node>
-		| Property<
-				TypedLiteral<numericDatatype | temporalDatatype | booleanDatatype>
-		  >
-	>
+	properties: Map<string, Property>
 }
 
 export const getNodeTerm = (node: Node) =>
@@ -37,6 +26,7 @@ export const getNodeTerm = (node: Node) =>
 
 export type State = Readonly<{
 	references: Map<string, [string, string][][]>
+	metaReferences: Map<string, [string, string][][]>
 	path: [string, string][]
 	types: TypeMap
 	tables: Map<string, Map<string, Tree>>
@@ -48,7 +38,11 @@ export type State = Readonly<{
 
 type TypeMap = Map<
 	string,
-	Readonly<{ type: string; shapeExpr: ShapeAnd; key?: string }>
+	Readonly<{
+		type: string
+		shapeExpr: TypeOf<typeof Schema>["shapes"][0]
+		key?: string
+	}>
 >
 
 export function getTypeMap(schema: TypeOf<typeof Schema>): TypeMap {
@@ -68,7 +62,7 @@ export function getTypeMap(schema: TypeOf<typeof Schema>): TypeMap {
 			] = getExpressions(shape)
 
 			const value: {
-				shapeExpr: ShapeAnd
+				shapeExpr: typeof shapeExpr
 				type: string
 				key?: string
 			} = { type, shapeExpr }

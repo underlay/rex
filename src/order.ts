@@ -1,8 +1,5 @@
-import { rex, xsdDate, xsdBoolean, defaultSort, xsdDateTime } from "./vocab.js"
+import { rex, xsd, defaultSort } from "./vocab.js"
 import {
-	xsdFloat,
-	xsdDecimal,
-	xsdDouble,
 	encodeFloat,
 	encodeDecimal,
 	encodeDouble,
@@ -21,105 +18,102 @@ import {
 	isBoolean,
 	numeric,
 	numericDatatype,
-	isSortAnnotation,
 } from "./schema.js"
 import { Node, getNodeTerm } from "./state.js"
-import { TypeOf } from "io-ts/es6"
+import { TypeOf } from "io-ts/es6/index.js"
 
-type Order<T extends Node> = (a: T, b: T) => boolean
-type TypedOrder = Order<TypedLiteral<string>>
+export type Order = (a: Node, b: Node) => boolean
 
 const numericInteger = {
-	[rex.greater]: ((
+	[rex.greatest]: (
 		a: TypedLiteral<integerDatatype>,
 		b: TypedLiteral<integerDatatype>
-	) => encodeInteger(a) < encodeInteger(b)) as TypedOrder,
-	[rex.lesser]: ((
+	) => encodeInteger(a) < encodeInteger(b),
+	[rex.least]: (
 		a: TypedLiteral<integerDatatype>,
 		b: TypedLiteral<integerDatatype>
-	) => encodeInteger(a) > encodeInteger(b)) as TypedOrder,
+	) => encodeInteger(a) > encodeInteger(b),
 }
 
 const numericDecimal = {
-	[rex.greater]: ((
-		a: TypedLiteral<typeof xsdDecimal>,
-		b: TypedLiteral<typeof xsdDecimal>
-	) => encodeDecimal(a) < encodeDecimal(b)) as TypedOrder,
-	[rex.lesser]: ((
-		a: TypedLiteral<typeof xsdDecimal>,
-		b: TypedLiteral<typeof xsdDecimal>
-	) => encodeDecimal(a) > encodeDecimal(b)) as TypedOrder,
+	[rex.greatest]: (
+		a: TypedLiteral<typeof xsd.decimal>,
+		b: TypedLiteral<typeof xsd.decimal>
+	) => encodeDecimal(a) < encodeDecimal(b),
+	[rex.least]: (
+		a: TypedLiteral<typeof xsd.decimal>,
+		b: TypedLiteral<typeof xsd.decimal>
+	) => encodeDecimal(a) > encodeDecimal(b),
 }
 
 const numericDouble = {
-	[rex.greater]: ((
-		a: TypedLiteral<typeof xsdDouble>,
-		b: TypedLiteral<typeof xsdDouble>
-	) => encodeDouble(a) < encodeDouble(b)) as TypedOrder,
-	[rex.lesser]: ((
-		a: TypedLiteral<typeof xsdDouble>,
-		b: TypedLiteral<typeof xsdDouble>
-	) => encodeDouble(a) > encodeDouble(b)) as TypedOrder,
+	[rex.greatest]: (
+		a: TypedLiteral<typeof xsd.double>,
+		b: TypedLiteral<typeof xsd.double>
+	) => encodeDouble(a) < encodeDouble(b),
+	[rex.least]: (
+		a: TypedLiteral<typeof xsd.double>,
+		b: TypedLiteral<typeof xsd.double>
+	) => encodeDouble(a) > encodeDouble(b),
 }
 
 const numericFloat = {
-	[rex.greater]: ((
-		a: TypedLiteral<typeof xsdFloat>,
-		b: TypedLiteral<typeof xsdFloat>
-	) => encodeFloat(a) < encodeFloat(b)) as TypedOrder,
-	[rex.lesser]: ((
-		a: TypedLiteral<typeof xsdFloat>,
-		b: TypedLiteral<typeof xsdFloat>
-	) => encodeFloat(a) > encodeFloat(b)) as TypedOrder,
+	[rex.greatest]: (
+		a: TypedLiteral<typeof xsd.float>,
+		b: TypedLiteral<typeof xsd.float>
+	) => encodeFloat(a) < encodeFloat(b),
+	[rex.least]: (
+		a: TypedLiteral<typeof xsd.float>,
+		b: TypedLiteral<typeof xsd.float>
+	) => encodeFloat(a) > encodeFloat(b),
 }
 
 function getNumericOrder<T extends numericDatatype>(
 	sort: TypeOf<typeof numeric>,
 	datatype: T
-): Order<TypedLiteral<T>> {
-	if (datatype === xsdDecimal) {
-		return numericDecimal[sort]
-	} else if (datatype === xsdDouble) {
-		return numericDouble[sort]
-	} else if (datatype === xsdFloat) {
-		return numericFloat[sort]
+): Order {
+	if (datatype === xsd.decimal) {
+		return numericDecimal[sort] as Order
+	} else if (datatype === xsd.double) {
+		return numericDouble[sort] as Order
+	} else if (datatype === xsd.float) {
+		return numericFloat[sort] as Order
 	} else {
-		return numericInteger[sort]
+		return numericInteger[sort] as Order
 	}
 }
 
 const temporal = {
-	[rex.earlier]: ((
-		a: TypedLiteral<typeof xsdDate | typeof xsdDateTime>,
-		b: TypedLiteral<typeof xsdDate | typeof xsdDateTime>
-	) => new Date(a.value) < new Date(b.value)) as TypedOrder,
-	[rex.later]: ((
-		a: TypedLiteral<typeof xsdDate | typeof xsdDateTime>,
-		b: TypedLiteral<typeof xsdDate | typeof xsdDateTime>
-	) => new Date(a.value) > new Date(b.value)) as TypedOrder,
+	[rex.earliest]: (
+		a: TypedLiteral<typeof xsd.date | typeof xsd.dateTime>,
+		b: TypedLiteral<typeof xsd.date | typeof xsd.dateTime>
+	) => new Date(a.value) < new Date(b.value),
+	[rex.latest]: (
+		a: TypedLiteral<typeof xsd.date | typeof xsd.dateTime>,
+		b: TypedLiteral<typeof xsd.date | typeof xsd.dateTime>
+	) => new Date(a.value) > new Date(b.value),
 }
 
 const boolean = {
-	[rex.and]: ((
-		a: TypedLiteral<typeof xsdBoolean>,
-		b: TypedLiteral<typeof xsdBoolean>
-	) => a.value === "true" && b.value === "true") as TypedOrder,
-	[rex.or]: ((
-		a: TypedLiteral<typeof xsdBoolean>,
-		b: TypedLiteral<typeof xsdBoolean>
-	) => a.value === "true" || b.value === "true") as TypedOrder,
+	[rex.all]: (
+		a: TypedLiteral<typeof xsd.boolean>,
+		b: TypedLiteral<typeof xsd.boolean>
+	) => a.value === "true" && b.value === "true",
+	[rex.any]: (
+		a: TypedLiteral<typeof xsd.boolean>,
+		b: TypedLiteral<typeof xsd.boolean>
+	) => a.value === "true" || b.value === "true",
 }
 
 const lexicographic = {
-	[rex.ascending]: (a: Node, b: Node) =>
+	[rex.first]: (a: Node, b: Node) =>
 		getNodeTerm(a).value < getNodeTerm(b).value,
-	[rex.descending]: (a: Node, b: Node) =>
-		getNodeTerm(a).value > getNodeTerm(b).value,
+	[rex.last]: (a: Node, b: Node) => getNodeTerm(a).value > getNodeTerm(b).value,
 }
 
-export function getOrder(
+export function getLexicographicOrder(
 	tripleConstraint: baseTripleConstraint & sortLexicographic
-): Order<Node> {
+): Order {
 	const sort =
 		tripleConstraint.annotations === undefined
 			? defaultSort
@@ -130,33 +124,31 @@ export function getOrder(
 
 export function getTypeOrder<
 	S extends sortNumeric | sortTemporal | sortBoolean
->(
-	tripleConstraint: baseTripleConstraint & S
-): Order<TypedLiteral<S["valueExpr"]["datatype"]>> {
+>(tripleConstraint: baseTripleConstraint & S): Order {
 	if (isNumeric(tripleConstraint)) {
 		const {
 			valueExpr: { datatype },
 			annotations: [{ object: sort }],
 		} = tripleConstraint
-		if (datatype === xsdDecimal) {
-			return numericDecimal[sort]
-		} else if (datatype === xsdDouble) {
-			return numericDouble[sort]
-		} else if (datatype === xsdFloat) {
-			return numericFloat[sort]
+		if (datatype === xsd.decimal) {
+			return numericDecimal[sort] as Order
+		} else if (datatype === xsd.double) {
+			return numericDouble[sort] as Order
+		} else if (datatype === xsd.float) {
+			return numericFloat[sort] as Order
 		} else {
-			return numericInteger[sort]
+			return numericInteger[sort] as Order
 		}
 	} else if (isTemporal(tripleConstraint)) {
 		const {
 			annotations: [{ object: sort }],
 		} = tripleConstraint
-		return temporal[sort]
+		return temporal[sort] as Order
 	} else if (isBoolean(tripleConstraint)) {
 		const {
 			annotations: [{ object: sort }],
 		} = tripleConstraint
-		return boolean[sort]
+		return boolean[sort] as Order
 	} else {
 		return lexicographic[defaultSort]
 	}

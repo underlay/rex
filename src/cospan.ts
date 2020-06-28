@@ -1,12 +1,13 @@
+import RDF from "rdf-js"
 import { Store, DataFactory, N3Store } from "n3"
 
-import { toId } from "./utils.js"
+import { toId, Quad } from "./utils.js"
 import { shapeExpr } from "./schema.js"
 import { rdfTypeNode } from "./vocab.js"
 
 export function cospan(
 	types: Map<string, { type: string; shapeExpr: shapeExpr; key?: string }>,
-	datasets: N3Store[]
+	datasets: RDF.Quad[][]
 ): {
 	coproduct: N3Store
 	components: Map<string, string>
@@ -15,7 +16,7 @@ export function cospan(
 } {
 	const coproduct = new Store()
 	for (const [i, store] of datasets.entries()) {
-		for (const q of store.getQuads(null, null, null, null)) {
+		for (const q of store) {
 			if (q.subject.termType === "BlankNode") {
 				const value = `d${i}-${q.subject.value}`
 				q.subject = DataFactory.blankNode(value)
@@ -30,7 +31,7 @@ export function cospan(
 			} else if (q.graph.termType === "DefaultGraph") {
 				q.graph = DataFactory.blankNode(`d${i}`)
 			}
-			coproduct.addQuad(q)
+			coproduct.addQuad(q as RDF.Quad)
 		}
 	}
 

@@ -34,26 +34,7 @@ import {
 	LanguageStemRange,
 } from "./constraint.js"
 
-const rdfLangString = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"
-const xsdString = "http://www.w3.org/2001/XMLSchema#string"
-
-export const xsdInteger = "http://www.w3.org/2001/XMLSchema#integer",
-	xsdNonPositiveInteger = "http://www.w3.org/2001/XMLSchema#nonPositiveInteger",
-	xsdNegativeInteger = "http://www.w3.org/2001/XMLSchema#negativeInteger",
-	xsdLong = "http://www.w3.org/2001/XMLSchema#long",
-	xsdInt = "http://www.w3.org/2001/XMLSchema#int",
-	xsdShort = "http://www.w3.org/2001/XMLSchema#short",
-	xsdByte = "http://www.w3.org/2001/XMLSchema#byte",
-	xsdNonNegativeInteger = "http://www.w3.org/2001/XMLSchema#nonNegativeInteger",
-	xsdUnsignedLong = "http://www.w3.org/2001/XMLSchema#unsignedLong",
-	xsdUnsignedInt = "http://www.w3.org/2001/XMLSchema#unsignedInt",
-	xsdUnsignedShort = "http://www.w3.org/2001/XMLSchema#unsignedShort",
-	xsdUnsignedByte = "http://www.w3.org/2001/XMLSchema#unsignedByte",
-	xsdPositiveInteger = "http://www.w3.org/2001/XMLSchema#positiveInteger"
-
-export const xsdDecimal = "http://www.w3.org/2001/XMLSchema#decimal",
-	xsdFloat = "http://www.w3.org/2001/XMLSchema#float",
-	xsdDouble = "http://www.w3.org/2001/XMLSchema#double"
+import { xsd, rdf } from "./vocab.js"
 
 interface NamedNode<T extends string> extends RDF.NamedNode {
 	value: T
@@ -96,19 +77,19 @@ const integerPattern = /^[+-]?[0-9]+$/
 const decimalPattern = /^[+\-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+\-]?[0-9]+)?$/
 
 export const integerDatatype = union([
-	literal(xsdInteger),
-	literal(xsdNonPositiveInteger),
-	literal(xsdNegativeInteger),
-	literal(xsdLong),
-	literal(xsdInt),
-	literal(xsdShort),
-	literal(xsdByte),
-	literal(xsdNonNegativeInteger),
-	literal(xsdUnsignedLong),
-	literal(xsdUnsignedInt),
-	literal(xsdUnsignedShort),
-	literal(xsdUnsignedByte),
-	literal(xsdPositiveInteger),
+	literal(xsd.integer),
+	literal(xsd.positiveInteger),
+	literal(xsd.nonPositiveInteger),
+	literal(xsd.negativeInteger),
+	literal(xsd.nonNegativeInteger),
+	literal(xsd.long),
+	literal(xsd.int),
+	literal(xsd.short),
+	literal(xsd.byte),
+	literal(xsd.unsignedLong),
+	literal(xsd.unsignedInt),
+	literal(xsd.unsignedShort),
+	literal(xsd.unsignedByte),
 ])
 
 export const integer: Type<
@@ -120,19 +101,19 @@ export const integer: Type<
 export type integerDatatype = keyof typeof integerRanges
 
 export const integerRanges = Object.freeze({
-	[xsdInteger]: [-Infinity, Infinity] as [number, number],
-	[xsdNonPositiveInteger]: [-Infinity, 0] as [number, number],
-	[xsdNegativeInteger]: [-Infinity, -1] as [number, number],
-	[xsdLong]: [-9223372036854775808, 9223372036854775807] as [number, number],
-	[xsdInt]: [-2147483648, 2147483647] as [number, number],
-	[xsdShort]: [-32768, 32767] as [number, number],
-	[xsdByte]: [-128, 127] as [number, number],
-	[xsdNonNegativeInteger]: [0, Infinity] as [number, number],
-	[xsdUnsignedLong]: [0, 18446744073709551615] as [number, number],
-	[xsdUnsignedInt]: [0, 4294967295] as [number, number],
-	[xsdUnsignedShort]: [0, 65535] as [number, number],
-	[xsdUnsignedByte]: [0, 255] as [number, number],
-	[xsdPositiveInteger]: [1, Infinity] as [number, number],
+	[xsd.integer]: [-Infinity, Infinity] as [number, number],
+	[xsd.positiveInteger]: [1, Infinity] as [number, number],
+	[xsd.nonPositiveInteger]: [-Infinity, 0] as [number, number],
+	[xsd.negativeInteger]: [-Infinity, -1] as [number, number],
+	[xsd.nonNegativeInteger]: [0, Infinity] as [number, number],
+	[xsd.long]: [-9223372036854775808, 9223372036854775807] as [number, number],
+	[xsd.int]: [-2147483648, 2147483647] as [number, number],
+	[xsd.short]: [-32768, 32767] as [number, number],
+	[xsd.byte]: [-128, 127] as [number, number],
+	[xsd.unsignedLong]: [0, 18446744073709551615] as [number, number],
+	[xsd.unsignedInt]: [0, 4294967295] as [number, number],
+	[xsd.unsignedShort]: [0, 65535] as [number, number],
+	[xsd.unsignedByte]: [0, 255] as [number, number],
 })
 
 export const isInteger = (
@@ -150,9 +131,9 @@ export const encodeInteger = ({
 	value,
 }: TypedLiteral<integerDatatype>): number => parseInt(value)
 
-export const decimal = TypedLiteral(literal(xsdDecimal))
+export const decimal = TypedLiteral(literal(xsd.decimal))
 
-export type decimalDatatype = typeof xsdDecimal
+export type decimalDatatype = typeof xsd.decimal
 
 export const isDecimal = (
 	input: unknown
@@ -163,9 +144,9 @@ export const encodeDecimal = ({
 	value,
 }: TypedLiteral<decimalDatatype>): number => parseFloat(value)
 
-export type floatDatatype = typeof xsdFloat
+export type floatDatatype = typeof xsd.float
 
-export const float = TypedLiteral(literal(xsdFloat))
+export const float = TypedLiteral(literal(xsd.float))
 
 export const isFloat = (input: unknown): input is TypedLiteral<floatDatatype> =>
 	float.is(input) &&
@@ -183,9 +164,9 @@ export const encodeFloat = ({ value }: TypedLiteral<floatDatatype>): number =>
 		? -Infinity
 		: parseFloat(value)
 
-export type doubleDatatype = typeof xsdDouble
+export type doubleDatatype = typeof xsd.double
 
-export const double = TypedLiteral(literal(xsdDouble))
+export const double = TypedLiteral(literal(xsd.double))
 
 export const isDouble = (
 	input: unknown
@@ -317,11 +298,11 @@ function validateValueSet(
 				return node.termType === "NamedNode" && value === v
 			} else if (node.termType !== "Literal" || value !== v.value) {
 				return false
-			} else if (v.type === undefined || v.type === xsdString) {
-				return node.datatype.value === xsdString
+			} else if (v.type === undefined || v.type === xsd.string) {
+				return node.datatype.value === xsd.string
 			} else if (v.type !== node.datatype.value) {
 				return false
-			} else if (v.type === rdfLangString) {
+			} else if (v.type === rdf.langString) {
 				return node.language === v.language
 			} else {
 				return true
@@ -343,7 +324,7 @@ function validateValueSet(
 				iriOrLiteralStem(value, v.stem) &&
 				!v.exclusions.some((e) => iriOrLiteralStem(value, e))
 			)
-		} else if (node.datatype.value !== rdfLangString) {
+		} else if (node.datatype.value !== rdf.langString) {
 			return false
 		} else if (Language.is(v)) {
 			return node.language === v.languageTag

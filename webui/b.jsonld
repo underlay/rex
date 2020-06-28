@@ -3,18 +3,24 @@
 		"@vocab": "http://schema.org/",
 		"url": {
 			"@type": "@id"
+		},
+		"date": {
+			"@type": "http://www.w3.org/2001/XMLSchema#dateTime"
 		}
 	},
-	"date": "yesterday",
+	"@type": "http://example.com/Update",
+	"date": "2020-06-28T02:55:02.276Z",
 	"@graph": {
 		"@type": "Person",
-		"name": "John Doe",
 		"url": "http://example.com/john-doe",
+		"name": "John Doe",
+		"age": 30,
 		"children": [
 			{
 				"@type": "Person",
 				"url": "http://example.com/jill",
-				"name": "Jill"
+				"name": "Jill",
+				"age": 15
 			},
 			{
 				"@type": "Person",

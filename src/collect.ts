@@ -1,11 +1,7 @@
 import { Node, Property } from "./state.js"
 
-export function collect<T extends Node, P extends Property<T>>({
-	values,
-	order,
-	max,
-}: P): P["values"] {
-	const array: P["values"] = []
+export function collect({ values, order, max }: Property): Node[] {
+	const array: Node[] = []
 	for (const a of values) {
 		const i = array.findIndex((b) => order(a, b))
 		if (i === -1) {

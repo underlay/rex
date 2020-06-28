@@ -6,6 +6,34 @@ import { RemoteDocument } from "jsonld/jsonld-spec"
 
 const { Store, StreamParser, StreamWriter, DataFactory } = N3
 
+export type NamedNode = {
+	termType: "NamedNode"
+	value: string
+}
+
+export type BlankNode = {
+	termType: "BlankNode"
+	value: string
+}
+
+export type Literal = {
+	termType: "Literal"
+	langauge: string
+	datatype: NamedNode
+}
+
+export type DefaultGraph = {
+	termType: "DefaultGraph"
+	value: ""
+}
+
+export type Quad = {
+	subject: NamedNode | BlankNode
+	predicate: NamedNode
+	object: NamedNode | BlankNode | Literal
+	graph: NamedNode | BlankNode | DefaultGraph
+}
+
 export const { fromId, toId } = (DataFactory as any).internal as {
 	fromId: (id: string) => RDF.Term
 	toId: (term: RDF.Term) => string
@@ -45,7 +73,7 @@ export const writeStore = (store: N3.N3Store): Promise<string> =>
 			.on("error", (err) => reject(err))
 
 		for (const quad of store.getQuads(null, null, null, null)) {
-			// The writer.write typing is incorrect here, writer accetps object streams of quads
+			// The writer.write typing is incorrect here, writer accepts object streams of quads
 			writer.write((quad as unknown) as string)
 		}
 		writer.end()
