@@ -150,7 +150,7 @@ function Index(props) {
 }
 
 function Assertion({ cid, dataset, onRemove }) {
-	const [open, setOpen] = useState(false)
+	const [open, setOpen] = useState(true)
 	const handleChange = useCallback((event) => setOpen(event.target.checked), [])
 	const store = new Store(dataset)
 	return (
