@@ -52,7 +52,7 @@ Promise.all([
 	.catch((err) => console.error(err))
 
 function Index(props) {
-	const worker = useMemo(() => new Worker("/webui/lib/worker.min.js"), [])
+	const worker = useMemo(() => new Worker("webui/lib/worker.min.js"), [])
 
 	const [value, setValue] = useState(props.shex)
 	const handleChange = useCallback((event) => setValue(event.target.value), [])
