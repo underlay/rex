@@ -44,9 +44,9 @@ export declare type sortMeta = {
     valueExpr?: shapeExpr;
     annotations: [annotation<typeof rex.meta, string>];
 };
-export declare type sortWithMeta = {
+declare type sortWithMeta = {
     valueExpr?: shapeExpr;
-    annotations: [annotation<typeof rex.meta, string>, annotation<typeof rex.with, string>];
+    annotations: [annotation<typeof rex.meta, string>, annotation<typeof rex.with, string>, NonNullable<sortDatatypeAnnotation["annotations"]>[0]];
 };
 export declare function isNumeric(tripleConstraint: tripleConstraintAnnotation): tripleConstraint is sortNumeric;
 export declare function isTemporal(tripleConstraint: tripleConstraintAnnotation): tripleConstraint is sortTemporal;

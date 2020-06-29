@@ -3,7 +3,7 @@ import { materialize } from "../lib/materialize.js"
 import { Schema } from "../lib/schema.js"
 import { right, left } from "fp-ts/es6/Either.js"
 
-self.addEventListener("message", ({ data: { shex, assertions } }) => {
+self.addEventListener("message", ({ data: { id, shex, assertions } }) => {
 	loadText(shex, null)
 		.then((schema) => {
 			const result = Schema.decode(schema)
@@ -14,7 +14,7 @@ self.addEventListener("message", ({ data: { shex, assertions } }) => {
 			for (let i = 0; i < view.length; i++) {
 				view[i] = view[i].toJSON()
 			}
-			postMessage(right(view))
+			postMessage({ id, result: right(view) })
 		})
-		.catch((err) => postMessage(left(err.toString())))
+		.catch((err) => postMessage({ id, result: left(err.toString()) }))
 })
