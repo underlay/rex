@@ -1,4 +1,4 @@
-import ShExCore from "@shexjs/core"
+import Util from "@shexjs/core/lib/ShExUtil.js"
 import ShExParser from "@shexjs/parser"
 
 const dwebURI = /^dweb:\/ipfs\/([a-z2-7]{59})$/
@@ -23,7 +23,7 @@ export async function loadURI(
 	uri: string,
 	ipfs: Ipfs.CoreAPI | null = null
 ): Promise<ShExParser.Schema> {
-	const merged = ShExCore.Util.emptySchema()
+	const merged = Util.emptySchema()
 	const loaded: Set<string> = new Set([])
 	async function load(uri: string) {
 		loaded.add(uri)
@@ -32,7 +32,7 @@ export async function loadURI(
 			await Promise.all(schema.imports.filter((u) => !loaded.has(u)).map(load))
 			delete schema.imports
 		}
-		ShExCore.Util.merge(merged, schema, false, true)
+		Util.merge(merged, schema, false, true)
 	}
 	await load(uri)
 	return merged
@@ -42,10 +42,10 @@ export async function loadText(
 	shex: string,
 	ipfs: Ipfs.CoreAPI | null = null
 ): Promise<ShExParser.Schema> {
-	const merged = ShExCore.Util.emptySchema()
+	const merged = Util.emptySchema()
 	const loaded: Set<string> = new Set([])
 	async function load(schema: ShExParser.Schema) {
-		ShExCore.Util.merge(merged, schema, false, true)
+		Util.merge(merged, schema, false, true)
 		if (Array.isArray(schema.imports)) {
 			await Promise.all(
 				schema.imports

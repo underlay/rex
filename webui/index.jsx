@@ -7,19 +7,12 @@ import uuid from "uuid/v4"
 
 import { useDebounce } from "use-debounce"
 
-import NewDwebDocumentLoader from "dweb-loader"
-import IpfsHttpClient from "ipfs-http-client"
 import { Store } from "n3"
 import { Dataset } from "rdf-cytoscape"
 
-import { parseJsonLd } from "../lib/utils.js"
-
 import { cid, serialize } from "ipld-dag-cbor/src/util.js"
-import { isRight, isLeft } from "fp-ts/es6/Either.js"
 
-const ipfs = IpfsHttpClient("http://localhost:5001")
-
-const documentLoader = NewDwebDocumentLoader(ipfs)
+import { parseJsonLd } from "./parse.js"
 
 const main = document.querySelector("main")
 
@@ -29,8 +22,8 @@ Promise.all([
 	fetch("webui/b.jsonld").then((res) => res.json()),
 ])
 	.then(async ([shex, a, b]) => {
-		const A = await parseJsonLd(a, documentLoader)
-		const B = await parseJsonLd(b, documentLoader)
+		const A = await parseJsonLd(a, null)
+		const B = await parseJsonLd(b, null)
 		const cidA = await cid(serialize(a))
 		const cidB = await cid(serialize(b))
 		const props = {
@@ -66,11 +59,11 @@ function Index(props) {
 		worker.addEventListener("message", ({ data }) => {
 			if (data.id !== id.current) {
 				return
-			} else if (isRight(data.result)) {
-				setReduced(new Store(data.result.right))
+			} else if (Array.isArray(data.result)) {
+				setReduced(new Store(data.result))
 				setError(null)
-			} else if (isLeft(data.result)) {
-				setError(data.result.left)
+			} else if (data.error && typeof data.error === "string") {
+				setError(data.error)
 			}
 		})
 		return worker
@@ -93,7 +86,7 @@ function Index(props) {
 			const newAssertions = []
 			for (const file of event.target.files) {
 				const doc = await file.text().then((text) => JSON.parse(text))
-				const dataset = await parseJsonLd(doc, documentLoader)
+				const dataset = await parseJsonLd(doc, null)
 				newAssertions.push({
 					cid: await cid(serialize(doc)),
 					store: new Store(dataset),

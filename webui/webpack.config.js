@@ -48,4 +48,9 @@ module.exports = {
 			},
 		],
 	},
+	externals: {
+		jsonld: "jsonld",
+		react: "React",
+		"react-dom": "ReactDOM",
+	},
 }

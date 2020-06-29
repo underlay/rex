@@ -149,17 +149,9 @@ declare module "@shexjs/parser" {
 	}
 }
 
-declare module "@shexjs/core" {
+declare module "@shexjs/core/lib/ShExUtil.js" {
 	import * as RDF from "rdf-js"
-	import {
-		Schema,
-		tripleExprObject,
-		shapeExprObject,
-		shapeExpr,
-		objectValue,
-		Annotation,
-	} from "@shexjs/parser"
-
+	import { Schema, tripleExprObject, shapeExprObject } from "@shexjs/parser"
 	interface DB {
 		getQuads(
 			subject: RDF.Term | string | null,
@@ -190,25 +182,31 @@ declare module "@shexjs/core" {
 		size: number
 	}
 
-	type Start = { term: "START" }
 	type Index = {
 		tripleExprs: { [id: string]: tripleExprObject }
 		shapeExprs: { [id: string]: shapeExprObject }
 	}
 
-	interface N3DB extends DB {}
-	const Util: {
-		makeN3DB(store: DB): N3DB
-		index(schema: Schema): Index
-		emptySchema(): Schema
-		merge(
-			left: Schema,
-			right: Schema,
-			overwrite: boolean,
-			inPlace: boolean
-		): void
-	}
+	export interface N3DB extends DB {}
 
+	export function makeN3DB(store: DB): N3DB
+	export function index(schema: Schema): Index
+	export function emptySchema(): Schema
+	export function merge(
+		left: Schema,
+		right: Schema,
+		overwrite: boolean,
+		inPlace: boolean
+	): void
+}
+
+declare module "@shexjs/core" {
+	import { Schema, shapeExpr, objectValue, Annotation } from "@shexjs/parser"
+
+	import * as ShExUtil from "@shexjs/core/lib/ShExUtil.js"
+	const Util: typeof ShExUtil
+
+	type Start = { term: "START" }
 	class Validator {
 		static start: Start
 		static construct(
@@ -216,11 +214,15 @@ declare module "@shexjs/core" {
 			options?: { or?: string; partition?: string; results?: string }
 		): Validator
 		validate(
-			db: DB,
+			db: ShExUtil.N3DB,
 			id: string,
 			start: shapeExpr
 		): SuccessResult | FailureResult
-		validate(db: DB, point: string, shape: string | Start): ShapeTestT | Failure // ???
+		validate(
+			db: ShExUtil.N3DB,
+			point: string,
+			shape: string | Start
+		): ShapeTestT | Failure // ???
 	}
 
 	type SuccessResult =

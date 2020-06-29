@@ -1,9 +1,6 @@
 import RDF from "rdf-js"
 import * as N3 from "n3"
 
-import jsonld, { Options } from "jsonld"
-import { RemoteDocument } from "jsonld/jsonld-spec"
-
 const { Store, StreamParser, StreamWriter, DataFactory } = N3
 
 export type NamedNode = {
@@ -78,28 +75,3 @@ export const writeStore = (store: N3.N3Store): Promise<string> =>
 		}
 		writer.end()
 	})
-
-export const parseJsonLd = (
-	input: {},
-	documentLoader?: (url: string) => Promise<RemoteDocument>
-): Promise<RDF.Quad[]> => {
-	const options: Options.ToRdf = {}
-	if (documentLoader !== null) {
-		options.documentLoader = documentLoader
-	}
-
-	return jsonld.toRDF(input, options).then((result) => {
-		for (const quad of result as RDF.Quad[]) {
-			if (quad.subject.value.startsWith("_:")) {
-				quad.subject.value = quad.subject.value.slice(2)
-			}
-			if (quad.object.value.startsWith("_:")) {
-				quad.object.value = quad.object.value.slice(2)
-			}
-			if (quad.graph.value.startsWith("_:")) {
-				quad.graph.value = quad.graph.value.slice(2)
-			}
-		}
-		return result as RDF.Quad[]
-	})
-}
