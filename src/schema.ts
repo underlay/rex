@@ -108,9 +108,9 @@ type sortDatatypeAnnotation =
 
 type tripleConstraintAnnotation =
 	| sortDatatypeAnnotation
+	| sortWithMeta
 	| sortWith
 	| sortMeta
-	| sortWithMeta
 
 type sortReference = {
 	valueExpr?: shapeExpr
@@ -138,8 +138,8 @@ type sortWithMeta = {
 	valueExpr?: shapeExpr
 	annotations: [
 		annotation<typeof rex.meta, string>,
-		annotation<typeof rex.with, string>,
-		NonNullable<sortDatatypeAnnotation["annotations"]>[0]
+		annotation<typeof rex.with, string>
+		// NonNullable<sortDatatypeAnnotation["annotations"]>[0]
 	]
 }
 
@@ -252,12 +252,12 @@ const TripleConstraint: Type<AnnotatedTripleConstraint> = recursion(
 					annotations: tuple([
 						metaAnnotation,
 						withAnnotation,
-						union([
-							lexicographicAnnotation,
-							numericAnnotation,
-							temporalAnnotation,
-							booleanAnnotation,
-						]),
+						// union([
+						// 	lexicographicAnnotation,
+						// 	numericAnnotation,
+						// 	temporalAnnotation,
+						// 	booleanAnnotation,
+						// ]),
 					]),
 				}),
 				type({ annotations: tuple([metaAnnotation]) }),
