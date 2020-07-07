@@ -1,0 +1,35 @@
+{
+	"@context": {
+		"@vocab": "http://purl.org/dc/terms/"
+	},
+	"@graph": {
+		"@type": "BibliographicResource",
+		"title": "Scalable semantic web data management using vertical partitioning",
+		"identifier": "10.5555/1325851.1325900",
+		"references": [
+			{
+				"@type": "BibliographicResource",
+				"title": "Integrating compression and execution in column-oriented database systems",
+				"identifier": "10.1145/1142473.1142548"
+			}
+		],
+		"contributor": [
+			{
+				"@type": "Agent",
+				"title": "Daniel J. Abadi"
+			},
+			{
+				"@type": "Agent",
+				"title": "Adam Marcus"
+			},
+			{
+				"@type": "Agent",
+				"title": "Samuel R. Madden"
+			},
+			{
+				"@type": "Agent",
+				"title": "Kate Hollenbach"
+			}
+		]
+	}
+}

@@ -1,0 +1,36 @@
+{
+	"@context": {
+		"@vocab": "http://purl.org/dc/terms/"
+	},
+	"@graph": {
+		"@type": "BibliographicResource",
+		"title": "Hexastore: sextuple indexing for semantic web data management",
+		"identifier": "10.14778/1453856.1453965",
+		"references": [
+			{
+				"@type": "BibliographicResource",
+				"title": "Scalable semantic web data management using vertical partitioning",
+				"identifier": "10.5555/1325851.1325900"
+			},
+			{
+				"@type": "BibliographicResource",
+				"title": "Integrating compression and execution in column-oriented database systems",
+				"identifier": "10.1145/1142473.1142548"
+			}
+		],
+		"contributor": [
+			{
+				"@type": "Agent",
+				"title": "Cathrin Weiss"
+			},
+			{
+				"@type": "Agent",
+				"title": "Panagiotis Karras"
+			},
+			{
+				"@type": "Agent",
+				"title": "Abraham Bernstein"
+			}
+		]
+	}
+}
