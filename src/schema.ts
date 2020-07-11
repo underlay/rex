@@ -9,27 +9,28 @@ import {
 	array,
 	union,
 	intersection,
-	recursion,
 	tuple,
 	failure,
 	identity,
 	brand,
 	Branded,
+	Context,
+	Errors,
+	success,
 } from "io-ts/es6/index.js"
-import { Right } from "fp-ts/lib/Either.js"
 
+import { Right } from "fp-ts/lib/Either.js"
 import ShExParser from "@shexjs/parser"
 
-import { integerDatatype } from "./satisfies.js"
-
-import { NodeConstraint, dataTypeConstraint } from "./constraint.js"
 import { rdf, rex, xsd } from "./vocab.js"
+import { integerDatatype } from "./satisfies.js"
+import { NodeConstraint, dataTypeConstraint } from "./constraint.js"
+import { Either } from "fp-ts/es6/Either"
 
-export const lexicographic = union([literal(rex.first), literal(rex.last)])
-
-export const numeric = union([literal(rex.greatest), literal(rex.least)])
-export const temporal = union([literal(rex.earliest), literal(rex.latest)])
-export const boolean = union([literal(rex.all), literal(rex.any)])
+export const lexicographic = union([literal(rex.first), literal(rex.last)]),
+	numeric = union([literal(rex.greatest), literal(rex.least)]),
+	temporal = union([literal(rex.earliest), literal(rex.latest)]),
+	boolean = union([literal(rex.all), literal(rex.any)])
 
 interface annotation<P extends string, T extends string> {
 	type: "Annotation"
@@ -46,28 +47,32 @@ const annotation = <P extends string, T extends string>(
 const metaAnnotation = annotation(literal(rex.meta), string)
 const withAnnotation = annotation(literal(rex.with), string)
 const keyAnnotation = annotation(literal(rex.key), string)
+const inAnnotation = annotation(literal(rex.in), string)
 
-export type ShapeAnd = {
-	type: "ShapeAnd"
-	shapeExprs: [ShExParser.NodeConstraint, Shape]
-}
-
-export type shapeExpr = string | ShExParser.NodeConstraint | Shape | ShapeAnd
-
-export const ShapeAnd: Type<ShapeAnd> = recursion("ShapeAnd", () =>
-	type({
-		type: literal("ShapeAnd"),
-		shapeExprs: tuple([NodeConstraint, Shape]),
-	})
+const sortAnnotation = annotation(
+	literal(rex.sort),
+	union([numeric, temporal, boolean, lexicographic])
 )
 
-export const shapeExpr: Type<shapeExpr> = recursion("shapeExpr", () =>
-	union([string, NodeConstraint, Shape, ShapeAnd])
-)
+type nodeConstraint = Extract<
+	ShExParser.NodeConstraint,
+	{ nodeKind: "iri" } | ShExParser.literalNodeConstraint
+>
+
+export type shapeExpr = string | nodeConstraint
+
+export const shapeExpr: Type<shapeExpr> = union([string, NodeConstraint])
+
+export const isDataTypeConstraint = (
+	valueExpr: shapeExpr
+): valueExpr is dataTypeConstraint<string> =>
+	typeof valueExpr !== "string" && valueExpr.hasOwnProperty("datatype")
 
 export type datatypeAnnotation<T extends string, S extends string> = {
 	valueExpr: dataTypeConstraint<T>
-	annotations: [annotation<typeof rex.sort, S>]
+	annotations:
+		| [annotation<typeof rex.sort, S>]
+		| [annotation<typeof rex.sort, S>, annotation<typeof rex.in, string>]
 }
 
 export type numericDatatype =
@@ -96,11 +101,15 @@ export type sortBoolean = datatypeAnnotation<
 >
 
 export type sortLexicographic = {
-	valueExpr?: shapeExpr
-	annotations?: [annotation<typeof rex.sort, TypeOf<typeof lexicographic>>]
+	annotations?:
+		| [annotation<typeof rex.sort, TypeOf<typeof lexicographic>>]
+		| [
+				annotation<typeof rex.sort, TypeOf<typeof lexicographic>>,
+				annotation<typeof rex.in, string>
+		  ]
 }
 
-type sortDatatypeAnnotation =
+export type sortDatatypeAnnotation =
 	| sortNumeric
 	| sortTemporal
 	| sortBoolean
@@ -108,233 +117,255 @@ type sortDatatypeAnnotation =
 
 type tripleConstraintAnnotation =
 	| sortDatatypeAnnotation
-	| sortWithMeta
-	| sortWith
-	| sortMeta
+	| sortReference
+	| sortMetaReference
 
-type sortReference = {
-	valueExpr?: shapeExpr
+export type sortReference = {
 	annotations:
+		| [annotation<typeof rex.with, string>, sortAnnotation]
 		| [
-				annotation<typeof rex.meta, string>,
 				annotation<typeof rex.with, string>,
-				annotation<typeof rex.sort, string>
+				sortAnnotation,
+				annotation<typeof rex.in, string>
 		  ]
-		| [annotation<typeof rex.with, string>, annotation<typeof rex.sort, string>]
-		| [annotation<typeof rex.meta, string>]
 }
 
-export type sortWith = {
-	valueExpr?: shapeExpr
-	annotations: [annotation<typeof rex.with, string>]
-}
-
-export type sortMeta = {
-	valueExpr?: shapeExpr
-	annotations: [annotation<typeof rex.meta, string>]
-}
-
-type sortWithMeta = {
-	valueExpr?: shapeExpr
+export type sortMetaReference = {
 	annotations: [
 		annotation<typeof rex.meta, string>,
-		annotation<typeof rex.with, string>
-		// NonNullable<sortDatatypeAnnotation["annotations"]>[0]
+		sortAnnotation,
+		annotation<typeof rex.in, string>
 	]
 }
 
+type sortAnnotation = annotation<
+	typeof rex.sort,
+	TypeOf<
+		typeof numeric | typeof temporal | typeof boolean | typeof lexicographic
+	>
+>
+
 export function isNumeric(
-	tripleConstraint: tripleConstraintAnnotation
-): tripleConstraint is sortNumeric {
-	if (
-		tripleConstraint.annotations === undefined ||
-		tripleConstraint.annotations.length !== 1
-	) {
+	tripleConstraint: AnnotatedTripleConstraint
+): tripleConstraint is TripleConstraint & sortNumeric {
+	if (tripleConstraint.annotations === undefined) {
 		return false
-	} else {
-		const [{ object }] = tripleConstraint.annotations
-		return numeric.is(object)
 	}
+	const [{ predicate, object }] = tripleConstraint.annotations
+	return predicate === rex.sort && numeric.is(object)
 }
 
 export function isTemporal(
-	tripleConstraint: tripleConstraintAnnotation
-): tripleConstraint is sortTemporal {
-	if (
-		tripleConstraint.annotations === undefined ||
-		tripleConstraint.annotations.length !== 1
-	) {
+	tripleConstraint: AnnotatedTripleConstraint
+): tripleConstraint is TripleConstraint & sortTemporal {
+	if (tripleConstraint.annotations === undefined) {
 		return false
-	} else {
-		const [{ object }] = tripleConstraint.annotations
-		return temporal.is(object)
 	}
+	const [{ predicate, object }] = tripleConstraint.annotations
+	return predicate === rex.sort && temporal.is(object)
 }
 
 export function isBoolean(
-	tripleConstraint: tripleConstraintAnnotation
-): tripleConstraint is sortBoolean {
-	if (
-		tripleConstraint.annotations === undefined ||
-		tripleConstraint.annotations.length !== 1
-	) {
+	tripleConstraint: AnnotatedTripleConstraint
+): tripleConstraint is TripleConstraint & sortBoolean {
+	if (tripleConstraint.annotations === undefined) {
 		return false
-	} else {
-		const [{ object }] = tripleConstraint.annotations
-		return boolean.is(object)
 	}
+	const [{ predicate, object }] = tripleConstraint.annotations
+	return predicate === rex.sort && boolean.is(object)
 }
 
 export function isDatatypeAnnotation(
 	tripleConstraint: AnnotatedTripleConstraint
-): tripleConstraint is baseTripleConstraint &
+): tripleConstraint is TripleConstraint &
 	(sortNumeric | sortTemporal | sortBoolean) {
 	if (tripleConstraint.annotations === undefined) {
 		return false
 	}
-	const [{ object }] = tripleConstraint.annotations
-	return numeric.is(object) || temporal.is(object) || boolean.is(object)
-}
-
-export function isWithAnnotation(
-	tripleConstraint: AnnotatedTripleConstraint
-): tripleConstraint is baseTripleConstraint & sortWith {
+	const [{ predicate, object }] = tripleConstraint.annotations
 	return (
-		tripleConstraint.annotations !== undefined &&
-		tripleConstraint.annotations.length === 1 &&
-		tripleConstraint.annotations[0].predicate === rex.with
+		predicate === rex.sort &&
+		(numeric.is(object) || temporal.is(object) || boolean.is(object))
 	)
 }
 
-export function isMetaAnnotation(
+export const isReferenceAnnotation = (
 	tripleConstraint: AnnotatedTripleConstraint
-): tripleConstraint is baseTripleConstraint & (sortMeta | sortWithMeta) {
-	return (
-		tripleConstraint.annotations !== undefined &&
-		tripleConstraint.annotations[0].predicate === rex.meta
-	)
-}
+): tripleConstraint is TripleConstraint & sortReference =>
+	tripleConstraint.annotations !== undefined &&
+	tripleConstraint.annotations.length > 1 &&
+	tripleConstraint.annotations[0].predicate === rex.with &&
+	tripleConstraint.annotations[1]!.predicate === rex.sort
 
-export type baseTripleConstraint = {
+export const isMetaReferenceAnnotation = (
+	tripleConstraint: AnnotatedTripleConstraint
+): tripleConstraint is TripleConstraint & sortMetaReference =>
+	tripleConstraint.annotations !== undefined &&
+	tripleConstraint.annotations.length > 2 &&
+	tripleConstraint.annotations[0].predicate === rex.meta &&
+	tripleConstraint.annotations[1]!.predicate === rex.sort &&
+	tripleConstraint.annotations[2]!.predicate === rex.in
+
+export type TripleConstraint = {
 	type: "TripleConstraint"
 	predicate: string
+	valueExpr: shapeExpr
 	inverse?: false
 	min?: number
 	max?: number
 }
 
-export type AnnotatedTripleConstraint = baseTripleConstraint &
+export type AnnotatedTripleConstraint = TripleConstraint &
 	tripleConstraintAnnotation
-
-export type TripleConstraint = baseTripleConstraint & { valueExpr?: shapeExpr }
 
 const lexicographicAnnotation = annotation(literal(rex.sort), lexicographic),
 	numericAnnotation = annotation(literal(rex.sort), numeric),
 	temporalAnnotation = annotation(literal(rex.sort), temporal),
 	booleanAnnotation = annotation(literal(rex.sort), boolean)
 
-const TripleConstraint: Type<AnnotatedTripleConstraint> = recursion(
-	"TripleConstraint",
-	() =>
-		intersection([
-			type({
-				type: literal("TripleConstraint"),
-				predicate: string,
-			}),
-			partial({
-				valueExpr: shapeExpr,
-				inverse: literal(false),
-				min: number,
-				max: number,
-			}),
-			union([
-				type({
-					annotations: tuple([
-						metaAnnotation,
-						withAnnotation,
-						// union([
-						// 	lexicographicAnnotation,
-						// 	numericAnnotation,
-						// 	temporalAnnotation,
-						// 	booleanAnnotation,
-						// ]),
-					]),
-				}),
-				type({ annotations: tuple([metaAnnotation]) }),
-				type({ annotations: tuple([withAnnotation]) }),
-				type({
-					valueExpr: dataTypeConstraint(
-						union([
-							literal(xsd.double),
-							literal(xsd.decimal),
-							literal(xsd.float),
-							integerDatatype,
-						])
-					),
-					annotations: tuple([numericAnnotation]),
-				}),
-				type({
-					valueExpr: dataTypeConstraint(
-						union([literal(xsd.date), literal(xsd.dateTime)])
-					),
-					annotations: tuple([temporalAnnotation]),
-				}),
-				type({
-					valueExpr: dataTypeConstraint(literal(xsd.boolean)),
-					annotations: tuple([booleanAnnotation]),
-				}),
-				partial({
-					annotations: tuple([lexicographicAnnotation]),
-				}),
-			]),
+const wrap = <T extends annotation<typeof rex.sort, string>>(s: Type<T>) =>
+	union([tuple([s]), tuple([s, inAnnotation])])
+
+export const numericValueExpr = dataTypeConstraint(
+		union([
+			literal(xsd.double),
+			literal(xsd.decimal),
+			literal(xsd.float),
+			integerDatatype,
 		])
-)
+	),
+	temporalValueExpr = dataTypeConstraint(
+		union([literal(xsd.date), literal(xsd.dateTime)])
+	),
+	booleanValueExpr = dataTypeConstraint(literal(xsd.boolean))
 
-export interface Shape {
-	type: "Shape"
-	expression: TripleConstraint | TypeOf<typeof EachOf>
-}
-
-const Shape: Type<Shape> = recursion("Shape", () =>
+const tripleConstraint = intersection([
 	type({
-		type: literal("Shape"),
-		expression: union([TripleConstraint, EachOf]),
-	})
-)
+		type: literal("TripleConstraint"),
+		predicate: string,
+		valueExpr: shapeExpr,
+	}),
+	partial({
+		inverse: literal(false),
+		min: number,
+		max: number,
+		annotations: array(annotation(string, string)),
+	}),
+])
 
-type UniqueTripleConstraints = [
-	TripleConstraint,
-	TripleConstraint,
-	...TripleConstraint[]
-]
-
-const tripleConstraints = array(TripleConstraint)
-const UniqueTripleConstraints = new Type<UniqueTripleConstraints>(
-	"UniqueTripleConstraints",
-	(input: unknown): input is UniqueTripleConstraints => {
-		if (tripleConstraints.is(input) && input.length > 1) {
-			const predicates = new Set(input.map((c) => c.predicate))
-			return predicates.size === input.length
+const TripleConstraint: Type<AnnotatedTripleConstraint> = new Type(
+	"AnnotatedTripleConstraint",
+	(input: unknown): input is AnnotatedTripleConstraint => {
+		if (!tripleConstraint.is(input)) {
+			return false
 		}
-		return false
+		return true
 	},
-	(input, context) => {
-		const result = tripleConstraints.validate(input, context)
-		if (result._tag === "Right" && result.right.length > 1) {
-			const { size } = new Set(result.right.map((c) => c.predicate))
-			if (size === result.right.length) {
-				return result as Right<UniqueTripleConstraints>
+	(
+		input: unknown,
+		context: Context
+	): Either<Errors, AnnotatedTripleConstraint> => {
+		if (tripleConstraint.is(input)) {
+			if (input.annotations !== undefined) {
+				const predicates = input.annotations.map(({ predicate }) => predicate)
+				const [a, b, c] = input.annotations
+				if (a.predicate === rex.in) {
+					if (input.annotations.length > 1) {
+						const extra = predicates.slice(1).join(", ")
+						return failure(input, context, `Extraneous annotations ${extra}`)
+					}
+				} else if (a.predicate === rex.sort) {
+					if (!matchesSort(input.valueExpr, a.object)) {
+						return failure(
+							input,
+							context,
+							`Sort annotation ${a.object} does not apply to the given value expression`
+						)
+					} else if (b !== undefined && b.predicate !== rex.in) {
+						const extra = predicates.slice(1).join(", ")
+						return failure(input, context, `Extraneous annotations ${extra}`)
+					} else if (c !== undefined) {
+						const extra = predicates.slice(2).join(", ")
+						return failure(input, context, `Extraneous annotations ${extra}`)
+					}
+				} else if (a.predicate === rex.with) {
+					if (b === undefined || b.predicate !== rex.sort) {
+						return failure(
+							input,
+							context,
+							`Sorting with rex:with requires an explicit rex:sort annotation`
+						)
+					} else if (c !== undefined && c.predicate !== rex.in) {
+						const extra = predicates.slice(2).join(", ")
+						return failure(input, context, `Extraneous annotations ${extra}`)
+					}
+				} else if (a.predicate === rex.meta) {
+					if (b === undefined || b.predicate !== rex.sort) {
+						return failure(
+							input,
+							context,
+							`Sorting with rex:meta requires an explicit rex:sort annotation`
+						)
+					} else if (c === undefined || c.predicate !== rex.in) {
+						return failure(
+							input,
+							context,
+							`Sorting with rex:meta requires an explicit rex:in annotation`
+						)
+					}
+				} else {
+					const extra = predicates.join(", ")
+					return failure(input, context, `Extraneous annotations ${extra}`)
+				}
 			}
+			return success(input as AnnotatedTripleConstraint)
+		} else {
+			return failure(input, context, "Invalid TripleConstraint")
 		}
-		return failure(input, context)
 	},
 	identity
 )
 
-const EachOf: Type<EachOf<TripleConstraint, TripleConstraint>> = type({
-	type: literal("EachOf"),
-	expressions: UniqueTripleConstraints,
-})
+// const TripleConstraint: Type<AnnotatedTripleConstraint> = intersection([
+// 	type({
+// 		type: literal("TripleConstraint"),
+// 		predicate: string,
+// 		valueExpr: shapeExpr,
+// 	}),
+// 	partial({
+// 		inverse: literal(false),
+// 		min: number,
+// 		max: number,
+// 	}),
+// 	union([
+// 		type({
+// 			annotations: union([
+// 				tuple([withAnnotation, sortAnnotation]),
+// 				tuple([withAnnotation, sortAnnotation, inAnnotation]),
+// 			]),
+// 		}),
+// 		type({
+// 			annotations: tuple([metaAnnotation, sortAnnotation, inAnnotation]),
+// 		}),
+// 		type({
+// 			valueExpr: numericValueExpr,
+// 			annotations: wrap(numericAnnotation),
+// 		}),
+// 		type({
+// 			valueExpr: temporalValueExpr,
+// 			annotations: wrap(temporalAnnotation),
+// 		}),
+// 		type({
+// 			valueExpr: booleanValueExpr,
+// 			annotations: wrap(booleanAnnotation),
+// 		}),
+// 		partial({
+// 			annotations: wrap(lexicographicAnnotation),
+// 		}),
+// 	]),
+// ])
+
+const tripleConstraints = array(TripleConstraint)
 
 const typedTripleConstraint = type({
 	type: literal("TripleConstraint"),
@@ -345,8 +376,10 @@ const typedTripleConstraint = type({
 	}),
 })
 
+type TypedTripleConstraint = TypeOf<typeof typedTripleConstraint>
+
 type TypedTripleConstraints = [
-	TypeOf<typeof typedTripleConstraint>,
+	TypedTripleConstraint,
 	AnnotatedTripleConstraint,
 	...AnnotatedTripleConstraint[]
 ]
@@ -354,51 +387,70 @@ type TypedTripleConstraints = [
 const TypedTripleConstraints = new Type<TypedTripleConstraints>(
 	"TypedTripleConstraints",
 	(input: unknown): input is TypedTripleConstraints => {
-		if (
-			UniqueTripleConstraints.is(input) &&
-			typedTripleConstraint.is(input[0])
-		) {
-			for (const tripleConstraint of input.slice(1)) {
-				if (isWithAnnotation(tripleConstraint)) {
-					const [{ object }] = tripleConstraint.annotations
-					if (object !== tripleConstraint.predicate) {
-						const match = input.find(({ predicate }) => predicate === object)
-						if (match === undefined) {
-							return false
-						}
+		if (!tripleConstraints.is(input) || input.length < 2) {
+			return false
+		}
+		if (!typedTripleConstraint.is(input[0])) {
+			return false
+		}
+		const predicates = new Set(input.map((c) => c.predicate))
+		if (predicates.size !== input.length) {
+			return false
+		}
+		for (const tripleConstraint of input.slice(1)) {
+			if (isReferenceAnnotation(tripleConstraint)) {
+				const [{ object }] = tripleConstraint.annotations
+				if (object !== tripleConstraint.predicate) {
+					const match = input.find(({ predicate }) => predicate === object)
+					if (match === undefined || typeof match.valueExpr === "string") {
+						return false
 					}
 				}
 			}
-			return true
 		}
-		return false
+
+		return true
 	},
 	(input, context) => {
-		const result = UniqueTripleConstraints.validate(input, context)
-		if (result._tag === "Right") {
-			const [one] = result.right
-			const typed = typedTripleConstraint.validate(one, context)
-			if (typed._tag === "Right") {
-				for (const tripleConstraint of result.right) {
-					if (isWithAnnotation(tripleConstraint)) {
-						const [{ object }] = tripleConstraint.annotations
-						if (object !== tripleConstraint.predicate) {
-							const match = result.right.find(
-								({ predicate }) => predicate === object
-							)
-							if (match === undefined) {
-								return failure(input, context)
-							}
-						}
-					}
-				}
-				return result as Right<TypedTripleConstraints>
-			} else {
-				return typed
-			}
-		} else {
+		const result = tripleConstraints.validate(input, context)
+		if (result._tag === "Left") {
 			return result
 		}
+
+		const [one] = result.right
+		const typed = typedTripleConstraint.validate(one, context)
+		if (typed._tag === "Left") {
+			return failure(
+				input,
+				context,
+				"The first field of a shape must have predicate rdf:type and have a fixed single value"
+			)
+		}
+
+		const predicates = new Set(result.right.map((c) => c.predicate))
+		if (predicates.size !== result.right.length) {
+			return failure(
+				input,
+				context,
+				"No two fields in the same shape can have the same predicate"
+			)
+		}
+
+		for (const tripleConstraint of result.right) {
+			if (isReferenceAnnotation(tripleConstraint)) {
+				const [{ object }] = tripleConstraint.annotations
+				if (object !== tripleConstraint.predicate) {
+					const match = result.right.find(
+						({ predicate }) => predicate === object
+					)
+					if (match === undefined) {
+						return failure(input, context)
+					}
+				}
+			}
+		}
+
+		return result as Right<TypedTripleConstraints>
 	},
 	identity
 )
@@ -408,39 +460,47 @@ const emptyProductShape = type({
 	expression: typedTripleConstraint,
 })
 
-const productShape = intersection([
-	type({
-		type: literal("Shape"),
-		expression: type({
-			type: literal("EachOf"),
-			expressions: TypedTripleConstraints,
-		}),
+const productShape = type({
+	type: literal("Shape"),
+	expression: type({
+		type: literal("EachOf"),
+		expressions: TypedTripleConstraints,
 	}),
-	partial({ annotations: tuple([keyAnnotation]) }),
+})
+
+export const product = union([
+	emptyProductShape,
+	intersection([
+		productShape,
+		partial({ annotations: tuple([keyAnnotation]) }),
+	]),
 ])
 
-const product = union([emptyProductShape, productShape])
+// export const product = intersection([
+// 	union([emptyProductShape, productShape]),
+// 	partial({ annotations: tuple([keyAnnotation]) }),
+// ])
 
 export const isEmptyProductShape = (
 	shape: TypeOf<typeof product>
 ): shape is TypeOf<typeof emptyProductShape> =>
 	shape.expression.type === "TripleConstraint"
 
+const shapeAnd = type({
+	type: literal("ShapeAnd"),
+	id: string,
+	shapeExprs: tuple([
+		type({
+			type: literal("NodeConstraint"),
+			nodeKind: literal("bnode"),
+		}),
+		product,
+	]),
+})
+
 const schema = type({
 	type: literal("Schema"),
-	shapes: array(
-		type({
-			type: literal("ShapeAnd"),
-			id: string,
-			shapeExprs: tuple([
-				type({
-					type: literal("NodeConstraint"),
-					nodeKind: literal("bnode"),
-				}),
-				product,
-			]),
-		})
-	),
+	shapes: array(shapeAnd),
 })
 
 interface KeyedSchemaBrand {
@@ -456,17 +516,55 @@ export const Schema = brand(
 			if (isEmptyProductShape(shape) || shape.annotations === undefined) {
 				continue
 			}
+			const { expressions } = shape.expression
 			const [{ object }] = shape.annotations
-			const key = shape.expression.expressions.find(
-				({ predicate }) => predicate === object
-			)
+			const key = expressions.find(({ predicate }) => predicate === object)
 			if (key === undefined) {
 				return false
 			}
-			for (const tripleConstraint of shape.expression.expressions) {
-				const valid = checkMetaAnnotations(s, tripleConstraint)
-				if (!valid) {
-					return false
+			for (const tripleConstraint of expressions) {
+				if (isReferenceAnnotation(tripleConstraint)) {
+					const [
+						{ object: ref },
+						{ object: sort },
+						graph,
+					] = tripleConstraint.annotations
+					const expression = expressions.find(
+						({ predicate }) => ref === predicate
+					)
+					if (expression === undefined) {
+						return false
+					} else if (expression === tripleConstraint) {
+						return false
+					} else if (!matchesSort(expression.valueExpr, sort)) {
+						return false
+					} else if (!checkGraph(graph, s)) {
+						return false
+					}
+				} else if (isMetaReferenceAnnotation(tripleConstraint)) {
+					const [
+						{ object: meta },
+						{ object: sort },
+						{ object: graph },
+					] = tripleConstraint.annotations
+					const match = s.shapes.find(({ id }) => id === graph)
+					if (match === undefined) {
+						return false
+					}
+
+					const [_, shape] = match.shapeExprs
+					const expression = getExpressions(shape).find(
+						({ predicate }) => predicate === meta
+					)
+
+					if (expression === undefined) {
+						return false
+					} else if (
+						typeof expression.valueExpr === "string" ||
+						!matchesSort(expression.valueExpr, sort)
+					) {
+						return false
+					}
 				}
 			}
 		}
@@ -475,79 +573,28 @@ export const Schema = brand(
 	"Keyed"
 )
 
-function checkMetaAnnotations(
-	s: TypeOf<typeof schema>,
-	tripleConstraint: TripleConstraint
-): boolean {
-	if (isMetaAnnotation(tripleConstraint)) {
-		const {
-			valueExpr,
-			annotations: [{ object }, withReference],
-		} = tripleConstraint
-		const match = s.shapes.find(({ id }) => object === id)
-		if (match === undefined) {
-			return false
-		}
-		if (withReference !== undefined) {
-			const {
-				shapeExprs: [_, { expression }],
-			} = match
-			if (expression.type === "TripleConstraint") {
-				return false
-			}
-			const reference = expression.expressions.find(
-				({ predicate }) => predicate === withReference.object
-			)
-			if (
-				reference === undefined ||
-				isWithAnnotation(reference) ||
-				isMetaAnnotation(reference)
-			) {
-				return false
-			}
-		}
-		if (
-			valueExpr !== undefined &&
-			typeof valueExpr !== "string" &&
-			valueExpr.type !== "NodeConstraint"
-		) {
-			const [_, shape] = getShape(valueExpr)
-			for (const expression of getExpressions(shape)) {
-				checkMetaAnnotations(s, expression)
-			}
-		}
-	}
-	return true
-}
-
-interface EachOf<
-	T1 extends TypeOf<typeof TripleConstraint>,
-	T2 extends TypeOf<typeof TripleConstraint>
-> {
-	type: "EachOf"
-	expressions: [T1, T2, ...T2[]]
-}
-
-interface Expression<
-	T1 extends TypeOf<typeof TripleConstraint>,
-	T2 extends TypeOf<typeof TripleConstraint>
-> {
-	type: "Shape"
-	expression: T1 | EachOf<T1, T2>
-}
-
-export function getExpressions<
-	T1 extends TypeOf<typeof TripleConstraint>,
-	T2 extends TypeOf<typeof TripleConstraint>
->(shape: Expression<T1, T2>): [T1, ...T2[]] {
-	if (shape.expression.type === "EachOf") {
-		return shape.expression.expressions
+function matchesSort(valueExpr: shapeExpr, sort: string): boolean {
+	if (numeric.is(sort)) {
+		return numericValueExpr.is(valueExpr)
+	} else if (temporal.is(sort)) {
+		return temporalValueExpr.is(valueExpr)
+	} else if (boolean.is(sort)) {
+		return booleanValueExpr.is(valueExpr)
+	} else if (lexicographic.is(sort)) {
+		return typeof valueExpr !== "string"
 	} else {
-		return [shape.expression]
+		return false
 	}
 }
 
-export const getShape = (
-	shape: Shape | ShapeAnd
-): [ShExParser.NodeConstraint | null, Shape] =>
-	shape.type === "ShapeAnd" ? shape.shapeExprs : [null, shape]
+const checkGraph = (
+	graph: annotation<typeof rex.in, string> | undefined,
+	s: TypeOf<typeof schema>
+) => graph === undefined || s.shapes.some(({ id }) => id === graph.object)
+
+export const getExpressions = (
+	shape: TypeOf<typeof product>
+): [TypedTripleConstraint, ...AnnotatedTripleConstraint[]] =>
+	shape.expression.type === "EachOf"
+		? shape.expression.expressions
+		: [shape.expression]

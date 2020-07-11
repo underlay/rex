@@ -1,13 +1,14 @@
 import RDF from "rdf-js";
-import { N3Store } from "n3";
-import { shapeExpr } from "./schema.js";
+import { Store } from "n3";
+import { Schema } from "./schema.js";
+import { TypeOf } from "io-ts/es6/index.js";
 export declare function cospan(types: Map<string, {
     type: string;
-    shapeExpr: shapeExpr;
+    shapeExpr: TypeOf<typeof Schema>["shapes"][0];
     key?: string;
 }>, datasets: RDF.Quad[][]): {
-    coproduct: N3Store;
+    coproduct: Store;
     components: Map<string, string>;
     inverse: Map<string, Set<string>>;
-    pushout: N3Store;
+    pushout: Store;
 };

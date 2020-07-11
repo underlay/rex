@@ -47,7 +47,7 @@ declare module "@shexjs/parser" {
 		| { length: number }
 		| { minlength?: number; maxlength?: number } // This doubles as an empty string facet
 
-	type stringFacets = stringLength & { pattern: string; flags?: string }
+	type stringFacets = stringLength & { pattern?: string; flags?: string }
 
 	type numericFacets = {
 		mininclusive?: number

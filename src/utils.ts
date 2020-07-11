@@ -1,5 +1,6 @@
 import RDF from "rdf-js"
 import * as N3 from "n3"
+import { State } from "./state"
 
 const { Store, StreamParser, StreamWriter, DataFactory } = N3
 
@@ -30,11 +31,15 @@ export type Quad = {
 	object: NamedNode | BlankNode | Literal
 	graph: NamedNode | BlankNode | DefaultGraph
 }
+;(window as any).N3 = N3
 
-export const { fromId, toId } = (DataFactory as any).internal as {
-	fromId: (id: string) => RDF.Term
-	toId: (term: RDF.Term) => string
-}
+export const fromId = (N3 as any).termFromId as (id: string) => RDF.Term
+export const toId = (N3 as any).termToId as (term: RDF.Term) => string
+
+// export const { fromId, toId } = (DataFactory as any).internal as {
+// 	fromId: (id: string) => RDF.Term
+// 	toId: (term: RDF.Term) => string
+// }
 
 const options = {
 	format: "application/n-quads",
@@ -51,7 +56,7 @@ export const parseQuads = (input: string): Promise<RDF.Quad[]> =>
 			.end(input)
 	})
 
-export const parseStore = (input: string): Promise<N3.N3Store> =>
+export const parseStore = (input: string): Promise<N3.Store> =>
 	new Promise((resolve, reject) => {
 		const store = new Store()
 		new StreamParser(options)
@@ -61,7 +66,7 @@ export const parseStore = (input: string): Promise<N3.N3Store> =>
 			.end(input)
 	})
 
-export const writeStore = (store: N3.N3Store): Promise<string> =>
+export const writeStore = (store: N3.Store): Promise<string> =>
 	new Promise((resolve, reject) => {
 		let s = ""
 		const writer = new StreamWriter(options)
@@ -75,3 +80,37 @@ export const writeStore = (store: N3.N3Store): Promise<string> =>
 		}
 		writer.end()
 	})
+
+export function image<T extends RDF.Term>(
+	term: Exclude<T, RDF.BlankNode> | RDF.BlankNode,
+	state: State
+): T | RDF.BlankNode {
+	if (term.termType === "BlankNode") {
+		const value = state.components.get(term.value)
+		if (value !== undefined) {
+			return DataFactory.blankNode(value)
+		}
+	}
+	return term
+}
+
+export function* preImage<T extends RDF.Term>(
+	term: Exclude<T, RDF.BlankNode> | RDF.BlankNode,
+	state: State
+): Generator<T | RDF.BlankNode, void, undefined> {
+	if (term.termType === "BlankNode") {
+		for (const value of state.inverse.get(term.value)!) {
+			yield DataFactory.blankNode(value)
+		}
+	} else {
+		yield term
+	}
+}
+
+export const getRange = (
+	min: number | undefined,
+	max: number | undefined
+): { min: number; max: number } => ({
+	min: min === undefined ? 1 : min,
+	max: max === undefined ? 1 : max === -1 ? Infinity : max,
+})

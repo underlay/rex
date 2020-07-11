@@ -1,0 +1,25 @@
+{
+	"@context": {
+		"@vocab": "http://schema.org/",
+		"url": {
+			"@type": "@id"
+		},
+		"date": {
+			"@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+		}
+	},
+	"@type": "http://example.com/Update",
+	"date": "2020-06-28T02:53:52.175Z",
+	"@graph": {
+		"@type": "Person",
+		"url": "http://example.com/john-doe",
+		"name": "JOHN D",
+		"age": 40,
+		"children": {
+			"@type": "Person",
+			"url": "http://example.com/jack",
+			"name": "Jack",
+			"age": 11
+		}
+	}
+}

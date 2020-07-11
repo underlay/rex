@@ -1,37 +1,43 @@
 import RDF from "rdf-js"
-import { Store, DataFactory, N3Store } from "n3"
+import { Store, DataFactory } from "n3"
 
-import { toId, Quad } from "./utils.js"
-import { shapeExpr } from "./schema.js"
+import { toId } from "./utils.js"
+import { Schema } from "./schema.js"
 import { rdfTypeNode } from "./vocab.js"
+import { TypeOf } from "io-ts/es6/index.js"
+
+const wrap = <T extends RDF.Term>(term: T, i: number): T | RDF.BlankNode =>
+	term.termType === "BlankNode"
+		? DataFactory.blankNode(`d${i}-${term.value}`)
+		: term.termType === "DefaultGraph"
+		? DataFactory.blankNode(`d${i}`)
+		: term
 
 export function cospan(
-	types: Map<string, { type: string; shapeExpr: shapeExpr; key?: string }>,
+	types: Map<
+		string,
+		{
+			type: string
+			shapeExpr: TypeOf<typeof Schema>["shapes"][0]
+			key?: string
+		}
+	>,
 	datasets: RDF.Quad[][]
 ): {
-	coproduct: N3Store
+	coproduct: Store
 	components: Map<string, string>
 	inverse: Map<string, Set<string>>
-	pushout: N3Store
+	pushout: Store
 } {
 	const coproduct = new Store()
 	for (const [i, store] of datasets.entries()) {
 		for (const q of store) {
-			if (q.subject.termType === "BlankNode") {
-				const value = `d${i}-${q.subject.value}`
-				q.subject = DataFactory.blankNode(value)
-			}
-			if (q.object.termType === "BlankNode") {
-				const value = `d${i}-${q.object.value}`
-				q.object = DataFactory.blankNode(value)
-			}
-			if (q.graph.termType === "BlankNode") {
-				const value = `d${i}-${q.graph.value}`
-				q.graph = DataFactory.blankNode(value)
-			} else if (q.graph.termType === "DefaultGraph") {
-				q.graph = DataFactory.blankNode(`d${i}`)
-			}
-			coproduct.addQuad(q as RDF.Quad)
+			coproduct.addQuad(
+				wrap(q.subject, i),
+				q.predicate,
+				wrap(q.object, i),
+				wrap(q.graph, i)
+			)
 		}
 	}
 

@@ -2,9 +2,9 @@
 
 > Reduction Expressions
 
-This is an experimental language for annotating [ShEx](https:/shex.io) shapes with _reduction expressions_.
+This is an experimental language for annotating [ShEx](https:/shex.io) shapes with _reduction expressions_. For now, shapes are limited to
 
-An [io-ts](https://github.com/gcanti/io-ts) validator for compliant schemas is exported from [src/schema.ts](src/schema.ts).
+[src/schema.ts](src/schema.ts) exports an [io-ts](https://github.com/gcanti/io-ts) validator for compliant schemas.
 
 ## Vocabulary
 

@@ -1,0 +1,20 @@
+PREFIX schema: <http://schema.org/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX rex: <http://underlay.org/ns/rex#>
+PREFIX ex: <http://example.com/>
+
+_:person bnode {
+  a [ schema:Person ] ;
+  schema:url iri ;
+  schema:age xsd:integer ;
+  schema:name xsd:string
+    // rex:meta schema:date
+    // rex:sort rex:latest
+    // rex:in ex:Update ;
+  schema:children @_:person * ;
+} // rex:key schema:url
+
+ex:Update bnode {
+  a [ ex:Update ] ;
+  schema:date xsd:dateTime ;
+}

@@ -5,12 +5,20 @@
 		<title>rex</title>
 		<script
 			defer
-			src="https://unpkg.com/react@16.13.1/umd/react.production.min.js"
+			src="https://unpkg.com/react@16.13.1/umd/react.development.js"
 		></script>
+		<!-- <script
+			defer
+			src="https://unpkg.com/react@16.13.1/umd/react.production.min.js"
+		></script> -->
 		<script
 			defer
-			src="https://unpkg.com/react-dom@16.13.1/umd/react-dom.production.min.js"
+			src="https://unpkg.com/react-dom@16.13.1/umd/react-dom.development.js"
 		></script>
+		<!-- <script
+			defer
+			src="https://unpkg.com/react-dom@16.13.1/umd/react-dom.production.min.js"
+		></script> -->
 		<script
 			defer
 			src="https://unpkg.com/jsonld@3.1.1/dist/jsonld.min.js"
@@ -31,12 +39,23 @@
 				font-family: monospace;
 				background-color: mintcream;
 				height: 300px;
+				width: 640px;
 			}
 
 			section {
 				padding: 0 1em;
 				display: flex;
 				flex-direction: column;
+			}
+
+			section.schema header {
+				display: flex;
+				flex-direction: row;
+				align-items: baseline;
+			}
+
+			section.schema header h2 {
+				flex: 1;
 			}
 
 			.rdf-cytoscape {
@@ -87,23 +106,19 @@
 				border-top: 1px solid #36454f;
 			}
 
-			.schema > details > summary > h3 {
-				display: inline-block;
-				margin-bottom: 0;
-			}
-
-			.schema h4 {
-				margin-bottom: 0;
+			section.output {
+				flex: 1;
 			}
 
 			.pushout.rdf-cytoscape {
-				width: 1200px;
+				min-width: 800px;
 				height: 800px;
 				border: inset;
 				overflow: scroll;
 			}
 
-			.pushout.rdf-cytoscape .error {
+			.pushout.rdf-cytoscape .error,
+			.pushout.rdf-cytoscape code {
 				margin: 1em;
 			}
 		</style>

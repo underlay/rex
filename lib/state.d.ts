@@ -1,34 +1,24 @@
-import RDF from "rdf-js";
-import { N3Store } from "n3";
+import { Store } from "n3";
 import { TypeOf } from "io-ts/es6/index.js";
 import { Schema } from "./schema.js";
 import { Order } from "./order.js";
-export declare type Node = RDF.Quad_Object | Readonly<Tree>;
-export declare type Property = {
+export declare type Instance = {
+    values: Map<string, Set<string>>;
     order: Order;
-    values: Array<Node>;
     min: number;
     max: number;
-    reference?: string;
-    withReference?: string;
-    graphs?: Map<string, Set<string>>;
 };
-export interface Tree {
-    termType: "Tree";
-    subject: RDF.Quad_Subject;
-    properties: Map<string, Property>;
-}
-export declare const getNodeTerm: (node: Node) => RDF.Quad_Object;
+export declare type Instances = Map<string, Instance[]>;
+export declare type Entry = [string, string, number, string];
 export declare type State = Readonly<{
-    references: Map<string, [string, string][][]>;
-    metaReferences: Map<string, [string, string][][]>;
-    path: [string, string][];
+    references: Map<string, Entry[]>;
+    metaReferences: Map<string, Entry[]>;
     types: TypeMap;
-    tables: Map<string, Map<string, Tree>>;
-    coproduct: N3Store;
+    tables: Map<string, Instances>;
+    coproduct: Store;
     components: Map<string, string>;
     inverse: Map<string, Set<string>>;
-    pushout: N3Store;
+    pushout: Store;
 }>;
 declare type TypeMap = Map<string, Readonly<{
     type: string;

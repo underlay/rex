@@ -18,7 +18,6 @@ import ShExParser from "@shexjs/parser"
 
 import {
 	iriNodeKind,
-	nonLiteralNodeKind,
 	literalNodeKind,
 	dataType,
 	valueSet,
@@ -376,12 +375,6 @@ export default function nodeSatisfies(
 			return false
 		}
 		return validateStringFacets(node.value, constraint)
-	} else if (nonLiteralNodeKind.is(constraint)) {
-		if (constraint.nodeKind === "bnode") {
-			return node.termType === "BlankNode"
-		} else if (constraint.nodeKind === "nonliteral") {
-			return node.termType === "BlankNode" || node.termType === "NamedNode"
-		}
 	} else if (literalNodeKind.is(constraint)) {
 		const { value, termType } = node
 		return (

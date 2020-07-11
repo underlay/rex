@@ -1,0 +1,48 @@
+{
+	"@context": {
+		"@vocab": "http://schema.org/",
+		"url": {
+			"@type": "@id"
+		},
+		"date": {
+			"@type": "http://www.w3.org/2001/XMLSchema#dateTime"
+		}
+	},
+	"@graph": [
+		{
+			"@type": "http://example.com/Update",
+			"date": "2020-06-28T02:55:02.276Z",
+			"@graph": {
+				"@id": "_:john",
+				"@type": "Person",
+				"url": "http://example.com/john-doe",
+				"name": "John Doe",
+				"age": 30,
+				"children": [
+					{
+						"@type": "Person",
+						"url": "http://example.com/jill",
+						"name": "Jill",
+						"age": 15
+					},
+					{
+						"@type": "Person",
+						"url": "http://example.com/four",
+						"name": 4
+					}
+				]
+			}
+		},
+		{
+			"@id": "_:john",
+			"age": 28
+		},
+		{
+			"@id": "_:phillip",
+			"@type": "Person",
+			"url": "http://example.com/phillip",
+			"name": "Phillip",
+			"age": 49
+		}
+	]
+}

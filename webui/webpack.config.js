@@ -5,7 +5,6 @@ module.exports = {
 
 	entry: {
 		index: ["babel-polyfill", __dirname + "/index.jsx"],
-		worker: ["babel-polyfill", "./worker.js"],
 	},
 
 	output: {

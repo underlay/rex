@@ -1,6 +1,7 @@
 import { DataFactory } from "n3"
 
-const rexKey = "http://underlay.org/ns/rex#key",
+const rexIn = "http://underlay.org/ns/rex#in",
+	rexKey = "http://underlay.org/ns/rex#key",
 	rexWith = "http://underlay.org/ns/rex#with",
 	rexMeta = "http://underlay.org/ns/rex#meta",
 	rexSort = "http://underlay.org/ns/rex#sort",
@@ -26,6 +27,7 @@ export type Sort =
 	| typeof rexAny
 
 export const rex = {
+	in: rexIn as typeof rexIn,
 	key: rexKey as typeof rexKey,
 	with: rexWith as typeof rexWith,
 	meta: rexMeta as typeof rexMeta,

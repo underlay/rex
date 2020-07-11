@@ -102,11 +102,6 @@ export const iriNodeKind = intersection([
 	stringFacet,
 ])
 
-export const nonLiteralNodeKind = type({
-	type: literal("NodeConstraint"),
-	nodeKind: union([literal("bnode"), literal("nonliteral")]),
-})
-
 export const literalNodeKind = intersection([
 	type({ type: literal("NodeConstraint"), nodeKind: literal("literal") }),
 	xsFacet,
@@ -131,7 +126,6 @@ export const valueSet = intersection([
 
 export const NodeConstraint: Type<ShExParser.NodeConstraint> = union([
 	iriNodeKind,
-	nonLiteralNodeKind,
 	literalNodeKind,
 	dataType,
 	valueSet,

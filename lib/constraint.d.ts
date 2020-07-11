@@ -166,10 +166,6 @@ export declare const iriNodeKind: import("io-ts/es6").IntersectionC<[import("io-
 }>, import("io-ts/es6").PartialC<{
     flags: import("io-ts/es6").StringC;
 }>]>]>]>;
-export declare const nonLiteralNodeKind: import("io-ts/es6").TypeC<{
-    type: import("io-ts/es6").LiteralC<"NodeConstraint">;
-    nodeKind: import("io-ts/es6").UnionC<[import("io-ts/es6").LiteralC<"bnode">, import("io-ts/es6").LiteralC<"nonliteral">]>;
-}>;
 export declare const literalNodeKind: import("io-ts/es6").IntersectionC<[import("io-ts/es6").TypeC<{
     type: import("io-ts/es6").LiteralC<"NodeConstraint">;
     nodeKind: import("io-ts/es6").LiteralC<"literal">;

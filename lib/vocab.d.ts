@@ -2,6 +2,7 @@ declare const rexFirst = "http://underlay.org/ns/rex#first", rexLast = "http://u
 export declare const defaultSort = "http://underlay.org/ns/rex#first";
 export declare type Sort = typeof rexFirst | typeof rexLast | typeof rexGreatest | typeof rexLeast | typeof rexEarliest | typeof rexLatest | typeof rexAll | typeof rexAny;
 export declare const rex: {
+    in: "http://underlay.org/ns/rex#in";
     key: "http://underlay.org/ns/rex#key";
     with: "http://underlay.org/ns/rex#with";
     meta: "http://underlay.org/ns/rex#meta";
