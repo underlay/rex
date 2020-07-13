@@ -51,14 +51,19 @@ export default function Example(props) {
 			...names.map((name) =>
 				fetch(`examples/${name}`).then((res) => res.json())
 			),
-		]).then(([shex, ...docs]) =>
-			Promise.all(docs.map((doc) => parseJsonLd(doc, null))).then(
-				(assertions) => {
-					setValue(shex)
-					setAssertions(assertions)
-				}
+		])
+			.then(([shex, ...docs]) =>
+				Promise.all(docs.map((doc) => parseJsonLd(doc, null))).then(
+					(assertions) => {
+						setValue(shex)
+						setAssertions(assertions)
+					}
+				)
 			)
-		)
+			.catch((err) => {
+				setAssertions([])
+				setError(err.toString())
+			})
 	}, [example])
 
 	const [value, setValue] = useState("")
@@ -94,7 +99,7 @@ export default function Example(props) {
 	}, [shex])
 
 	const union = useMemo(() => {
-		if (assertions === null) {
+		if (assertions === null || assertions.length === 0) {
 			return null
 		}
 		return getCoproduct(assertions.map(({ dataset }) => dataset))
@@ -105,25 +110,29 @@ export default function Example(props) {
 			return null
 		}
 		return union.getGraphs(null, null, null)
-	})
+	}, [union])
 
 	const tables = useMemo(() => {
 		if (schema !== null && union !== null && union.size > 0) {
 			return materialize(schema, union)
 		}
 		return null
-	})
+	}, [schema, union])
 
 	const handleUpload = useCallback(
-		async (event) => {
-			const newAssertions = []
-			for (const file of event.target.files) {
-				const doc = await file.text().then((text) => JSON.parse(text))
-				const dataset = await parseJsonLd(doc, null)
-				newAssertions.push(dataset)
-			}
-			setAssertions(newAssertions.concat(assertions))
-		},
+		(event) =>
+			Promise.all(
+				Array.from(event.target.files).map((file) =>
+					file
+						.text()
+						.then((text) => JSON.parse(text))
+						.then((doc) => parseJsonLd(doc, null))
+				)
+			)
+				.then((newAssertions) =>
+					setAssertions(newAssertions.concat(assertions))
+				)
+				.catch((err) => setError(err.toString())),
 		[assertions]
 	)
 
@@ -240,7 +249,6 @@ export default function Example(props) {
 function renderError(error) {
 	return (
 		<div className="error">
-			<code>Error parsing schema:</code>
 			<pre>{error}</pre>
 		</div>
 	)
