@@ -6,15 +6,18 @@ import ReactDOM from "react-dom"
 import Example from "./example.jsx"
 
 const examples = new Map([
-	["person", ["a.jsonld", "b.jsonld"]],
-	["bib", ["a.jsonld", "b.jsonld", "c.jsonld", "d.jsonld"]],
+	["person/schema.shex", ["person/a.jsonld", "person/b.jsonld"]],
+	[
+		"bib/schema.shex",
+		["bib/a.jsonld", "bib/b.jsonld", "bib/c.jsonld", "bib/d.jsonld"],
+	],
 ])
 
 async function main() {
 	ReactDOM.render(
 		<React.Fragment>
 			<div className="example">
-				<Example examples={examples} initialExample={"person"} />
+				<Example examples={examples} initialExample={"person/schema.shex"} />
 			</div>
 		</React.Fragment>,
 		document.querySelector("main")

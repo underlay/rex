@@ -31,13 +31,16 @@
 				font-family: monospace;
 				background-color: mintcream;
 				height: 300px;
-				width: 640px;
 			}
 
 			section {
 				padding: 0 1em;
 				display: flex;
 				flex-direction: column;
+			}
+
+			section.schema {
+				width: 640px;
 			}
 
 			section.schema header {
@@ -63,25 +66,33 @@
 				border: inset;
 				margin: 0.5em 0;
 				background-color: floralwhite;
+				max-height: 356px;
+				display: flex;
+				flex-direction: column;
 			}
 
 			.assertion pre {
-				margin: 0.5em;
+				margin: 0;
+				padding: 0.5em;
 			}
 
-			.assertion form {
+			.assertion pre.quads {
+				overflow: scroll;
+				border-top: 1px solid #36454f;
+			}
+
+			.assertion header {
 				display: flex;
 				align-items: center;
 			}
 
-			.assertion form button {
+			.assertion header button {
+				cursor: pointer;
 				margin: 0.5em;
 			}
 
-			.assertion form label {
-				margin: 0.5em;
+			.assertion header .view {
 				flex: 1;
-				cursor: pointer;
 				user-select: none;
 			}
 

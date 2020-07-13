@@ -36,11 +36,6 @@ export type Quad = {
 export const fromId = (N3 as any).termFromId as (id: string) => RDF.Term
 export const toId = (N3 as any).termToId as (term: RDF.Term) => string
 
-// export const { fromId, toId } = (DataFactory as any).internal as {
-// 	fromId: (id: string) => RDF.Term
-// 	toId: (term: RDF.Term) => string
-// }
-
 const options = {
 	format: "application/n-quads",
 	blankNodePrefix: "_:",

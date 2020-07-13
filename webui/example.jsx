@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect, useRef } from "react"
+import React, { useState, useCallback, useEffect } from "react"
 
 import { useDebounce } from "use-debounce"
 
@@ -9,19 +9,26 @@ import { parseJsonLd } from "./parse.js"
 import { loadText } from "../lib/loader.js"
 import { materialize } from "../lib/type.js"
 import { Schema } from "../lib/schema.js"
+import Assertion from "./assertion.jsx"
 
 const reduceContext = ([_, path], { key, type: { name } }) => [
 	name,
 	path + "/" + key,
 ]
 
-const options = {
-	algorithm: "URDNA2015",
-	format: "application/n-quads",
+function getError({ context, message }) {
+	const [name, path] = context.reduce(reduceContext, ["", ""])
+	let err = `${path}: ${name}`
+	if (err.startsWith("//")) {
+		err = err.slice(1)
+	}
+	if (message !== undefined) {
+		err += `\n${message}`
+	}
+	return err
 }
 
 export default function Example(props) {
-	// const id = useRef(null)
 	const [error, setError] = useState(null)
 	const [reduced, setReduced] = useState(null)
 	const [assertions, setAssertions] = useState([])
@@ -31,9 +38,9 @@ export default function Example(props) {
 	useEffect(() => {
 		const names = props.examples.get(example)
 		Promise.all([
-			fetch(`examples/${example}/schema.shex`).then((res) => res.text()),
+			fetch(`examples/${example}`).then((res) => res.text()),
 			...names.map((name) =>
-				fetch(`examples/${example}/${name}`).then((res) => res.json())
+				fetch(`examples/${name}`).then((res) => res.json())
 			),
 		]).then(([shex, ...docs]) =>
 			Promise.all(docs.map((doc) => parseJsonLd(doc, null))).then(
@@ -70,15 +77,7 @@ export default function Example(props) {
 			.then((schema) => {
 				const result = Schema.decode(schema)
 				if (result._tag === "Left") {
-					const { context, message } = result.left.pop()
-					const [name, path] = context.reduce(reduceContext, ["", ""])
-					let err = `${path}: ${name}`
-					if (err.startsWith("//")) {
-						err = err.slice(1)
-					}
-					if (message !== undefined) {
-						err += `\n${message}`
-					}
+					const err = getError(result.left.pop())
 					setSchema(null)
 					setReduced(null)
 					setError(err)
@@ -184,35 +183,6 @@ export default function Example(props) {
 				</div>
 			</section>
 		</React.Fragment>
-	)
-}
-
-function Assertion({ cid, dataset, onRemove }) {
-	const handleRemove = useCallback((_) => onRemove(cid), [cid, onRemove])
-
-	const [open, setOpen] = useState(false)
-	const handleChange = useCallback((event) => setOpen(event.target.checked), [])
-
-	const store = useMemo(() => new Store(dataset), [dataset])
-
-	return (
-		<div className="assertion">
-			<pre>dweb:/ipld/{cid}</pre>
-			<form>
-				<label>
-					Show rendered dataset
-					<input type="checkbox" checked={open} onChange={handleChange} />
-				</label>
-				<button className="remove" onClick={handleRemove}>
-					Remove
-				</button>
-			</form>
-			{open && (
-				<div className="rdf-cytoscape">
-					<Dataset store={store} focus={undefined} />
-				</div>
-			)}
-		</div>
 	)
 }
 
