@@ -23,10 +23,11 @@ import { getTypeOrder, getOrder, Order } from "./order.js"
 import { cospan } from "./cospan.js"
 import { collect } from "./collect.js"
 
+export type Table = Map<string, Map<string, Set<string>>>
 export function materialize(
 	s: TypeOf<typeof Schema>,
 	datasets: RDF.Quad[][]
-): RDF.Quad[] {
+): Map<string, Table> {
 	const types = getTypeMap(s)
 	const state: State = Object.freeze(
 		Object.assign(
@@ -193,27 +194,53 @@ export function materialize(
 	}
 
 	// Now state is complete, so we trim maximums and sort
-	const dataset: RDF.Quad[] = []
+	const result: Map<string, Table> = new Map()
 	for (const shapeAnd of s.shapes) {
 		const [{}, product] = shapeAnd.shapeExprs
-		const [{ valueExpr }, ...expressions] = getExpressions(product)
-		const {
-			values: [type],
-		} = valueExpr
-		const t = DataFactory.namedNode(type)
+		const [{}, ...expressions] = getExpressions(product)
 		const table = state.tables.get(shapeAnd.id)!
+		const r1: Table = new Map()
+		result.set(shapeAnd.id, r1)
 		for (const [subject, instances] of table) {
-			const s = DataFactory.blankNode(subject)
-			dataset.push(DataFactory.quad(s, rdfTypeNode, t))
+			const r2: Map<string, Set<string>> = new Map()
+			r1.set(subject, r2)
 			for (const [i, { predicate }] of expressions.entries()) {
-				const p = DataFactory.namedNode(predicate)
+				const r3: Set<string> = new Set()
+				r2.set(predicate, r3)
 				for (const object of collect(instances[i])) {
-					dataset.push(DataFactory.quad(s, p, object))
+					r3.add(toId(object))
 				}
 			}
 		}
 	}
 
+	return result
+}
+
+export function getDataset(
+	s: TypeOf<typeof Schema>,
+	tables: Map<string, Table>
+): RDF.Quad[] {
+	const dataset: RDF.Quad[] = []
+	for (const shapeAnd of s.shapes) {
+		const [{}, product] = shapeAnd.shapeExprs
+		const [{ valueExpr }] = getExpressions(product)
+		const {
+			values: [type],
+		} = valueExpr
+		const t = DataFactory.namedNode(type)
+		for (const [id, properties] of tables.get(shapeAnd.id)!) {
+			const subject = DataFactory.blankNode(id)
+			dataset.push(DataFactory.quad(subject, rdfTypeNode, t))
+			for (const [property, values] of properties) {
+				const predicate = DataFactory.namedNode(property)
+				for (const value of values) {
+					const object = fromId(value) as RDF.Quad_Object
+					dataset.push(DataFactory.quad(subject, predicate, object))
+				}
+			}
+		}
+	}
 	return dataset
 }
 

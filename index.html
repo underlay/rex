@@ -111,18 +111,47 @@
 
 			section.output {
 				flex: 1;
+				min-width: 800px;
+				max-width: 1000px;
+			}
+
+			section.output header {
+				display: flex;
+				align-items: center;
+			}
+
+			section.output header h2 {
+				flex: 1;
 			}
 
 			.pushout.rdf-cytoscape {
-				min-width: 800px;
 				height: 800px;
 				border: inset;
-				overflow: scroll;
 			}
 
 			.pushout.rdf-cytoscape .error,
 			.pushout.rdf-cytoscape > code {
 				margin: 1em;
+			}
+
+			section.table {
+				font-family: monospace;
+			}
+
+			section.table div {
+				overflow-x: scroll;
+			}
+
+			section.table div table {
+				border-collapse: collapse;
+			}
+
+			section.table td,
+			section.table th {
+				padding: 2px 8px;
+				white-space: pre;
+				text-align: start;
+				vertical-align: baseline;
 			}
 		</style>
 	</head>

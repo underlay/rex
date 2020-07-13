@@ -7,9 +7,10 @@ import { Dataset } from "rdf-cytoscape"
 
 import { parseJsonLd } from "./parse.js"
 import { loadText } from "../lib/loader.js"
-import { materialize } from "../lib/type.js"
+import { materialize, getDataset } from "../lib/type.js"
 import { Schema } from "../lib/schema.js"
 import Assertion from "./assertion.jsx"
+import { useMemo } from "react"
 
 const reduceContext = ([_, path], { key, type: { name } }) => [
 	name,
@@ -30,10 +31,13 @@ function getError({ context, message }) {
 
 export default function Example(props) {
 	const [error, setError] = useState(null)
-	const [reduced, setReduced] = useState(null)
+	const [tables, setTables] = useState(null)
 	const [assertions, setAssertions] = useState([])
 	const [example, setExample] = useState(props.initialExample)
 	const [schema, setSchema] = useState(null)
+	const [view, setView] = useState("table")
+	const setTable = useCallback((event) => setView("table"), [])
+	const setGraph = useCallback((event) => setView("graph"), [])
 
 	useEffect(() => {
 		const names = props.examples.get(example)
@@ -62,8 +66,8 @@ export default function Example(props) {
 				setSchema(null)
 			}
 
-			if (reduced !== null) {
-				setReduced(null)
+			if (tables !== null) {
+				setTables(null)
 			}
 
 			if (error !== null) {
@@ -79,7 +83,7 @@ export default function Example(props) {
 				if (result._tag === "Left") {
 					const err = getError(result.left.pop())
 					setSchema(null)
-					setReduced(null)
+					setTables(null)
 					setError(err)
 				} else {
 					setSchema(result.right)
@@ -92,8 +96,8 @@ export default function Example(props) {
 	useEffect(() => {
 		if (schema !== null && assertions.length > 0) {
 			const datasets = assertions.map(({ dataset }) => dataset)
-			const view = materialize(schema, datasets)
-			setReduced(new Store(view))
+			const tables = materialize(schema, datasets)
+			setTables(tables)
 		}
 	}, [schema, assertions])
 
@@ -116,7 +120,7 @@ export default function Example(props) {
 			if (i !== -1) {
 				if (assertions.length === 1) {
 					setAssertions([])
-					setReduced(null)
+					setTables(null)
 				} else {
 					setAssertions([...assertions.slice(0, i), ...assertions.slice(i + 1)])
 				}
@@ -136,7 +140,12 @@ export default function Example(props) {
 							<button
 								disabled={key === example}
 								key={key}
-								onClick={() => setExample(key)}
+								onClick={() => {
+									setSchema(null)
+									setTables(null)
+									setError(null)
+									setExample(key)
+								}}
 							>
 								{key}
 							</button>
@@ -169,16 +178,27 @@ export default function Example(props) {
 				))}
 			</section>
 			<section className="output">
-				<h2>Reduced dataset</h2>
+				<header>
+					<h2>Reduced dataset</h2>
+					<span>
+						<button onClick={setGraph} disabled={view === "graph"}>
+							View graph
+						</button>
+						<button onClick={setTable} disabled={view === "table"}>
+							View table
+						</button>
+					</span>
+				</header>
+
 				<div className="pushout rdf-cytoscape">
 					{error !== null ? (
 						renderError(error)
 					) : assertions.length === 0 ? (
 						<code>No assertions</code>
-					) : reduced === null ? (
+					) : tables === null ? (
 						<code>loading...</code>
 					) : (
-						<Dataset store={reduced} focus={undefined} />
+						<Result schema={schema} tables={tables} view={view} />
 					)}
 				</div>
 			</section>
@@ -192,5 +212,76 @@ function renderError(error) {
 			<code>Error parsing schema:</code>
 			<pre>{error}</pre>
 		</div>
+	)
+}
+
+function Result({ schema, tables, view }) {
+	console.log("rendering result", tables, view)
+	const store = useMemo(() => {
+		if (view === "graph") {
+			const dataset = getDataset(schema, tables)
+			return new Store(dataset)
+		}
+		return null
+	}, [schema, tables, view])
+
+	if (view === "graph") {
+		return <Dataset store={store} focus={undefined} />
+	} else if (view === "table") {
+		return (
+			<React.Fragment>
+				{Array.from(tables).map(([shape, table], i) =>
+					i === 0 ? (
+						<Table key={shape} shape={shape} table={table} />
+					) : (
+						<React.Fragment key={shape}>
+							<hr />
+							<Table shape={shape} table={table} />
+						</React.Fragment>
+					)
+				)}
+			</React.Fragment>
+		)
+	} else {
+		return null
+	}
+}
+
+function Table({ shape, table }) {
+	const rows = Array.from(table)
+	if (rows.length === 0) {
+		return (
+			<section className="table">
+				<h3>{shape}</h3>
+				<pre>Table is empty</pre>
+			</section>
+		)
+	}
+	const [[_, first]] = rows
+	const header = Array.from(first.keys())
+	return (
+		<section className="table">
+			<h3>{shape}</h3>
+			<div>
+				<table>
+					<tbody>
+						<tr key="header">
+							<th key="id"></th>
+							{header.map((property) => (
+								<th key={property}>{property}</th>
+							))}
+						</tr>
+						{rows.map(([id, properties]) => (
+							<tr key={id}>
+								<td key="id">{id}</td>
+								{Array.from(properties).map(([predicate, values]) => (
+									<td key={predicate}>{Array.from(values).join("\n")}</td>
+								))}
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
+		</section>
 	)
 }
