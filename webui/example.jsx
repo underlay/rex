@@ -1,16 +1,16 @@
-import React, { useState, useCallback, useEffect } from "react"
+import React, { useState, useCallback, useEffect, useMemo } from "react"
 
 import { useDebounce } from "use-debounce"
 
 import { Store } from "n3"
 import { Dataset } from "rdf-cytoscape"
 
-import { parseJsonLd } from "./parse.js"
 import { loadText } from "../lib/loader.js"
-import { materialize, getDataset } from "../lib/type.js"
+import { materialize, getDataset } from "../lib/materialize.js"
 import { Schema } from "../lib/schema.js"
+
+import { parseJsonLd } from "./parse.js"
 import Assertion from "./assertion.jsx"
-import { useMemo } from "react"
 
 const reduceContext = ([_, path], { key, type: { name } }) => [
 	name,
@@ -36,8 +36,8 @@ export default function Example(props) {
 	const [example, setExample] = useState(props.initialExample)
 	const [schema, setSchema] = useState(null)
 	const [view, setView] = useState("table")
-	const setTable = useCallback((event) => setView("table"), [])
-	const setGraph = useCallback((event) => setView("graph"), [])
+	const setTable = useCallback(({}) => setView("table"), [])
+	const setGraph = useCallback(({}) => setView("graph"), [])
 
 	useEffect(() => {
 		const names = props.examples.get(example)

@@ -127,6 +127,7 @@
 			.pushout.rdf-cytoscape {
 				height: 800px;
 				border: inset;
+				overflow-y: scroll;
 			}
 
 			.pushout.rdf-cytoscape .error,
@@ -152,6 +153,20 @@
 				white-space: pre;
 				text-align: start;
 				vertical-align: baseline;
+			}
+
+			section.table td {
+				border-top: 1px solid lightsteelblue;
+			}
+
+			section.table th,
+			section.table td {
+				border-left: 1px solid lightsteelblue;
+			}
+
+			section.table td:first-child,
+			section.table th:first-child {
+				border-left: none;
 			}
 		</style>
 	</head>
