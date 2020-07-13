@@ -169,7 +169,7 @@ export default function Example(props) {
 					/>
 				))}
 			</section>
-			<section class="output">
+			<section className="output">
 				<h2>Reduced dataset</h2>
 				<div className="pushout rdf-cytoscape">
 					{error !== null ? (
