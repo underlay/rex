@@ -182,6 +182,7 @@ export default function Example(props) {
 					<div
 						className="rdf-cytoscape"
 						style={{
+							border: "inset",
 							height: graphHeight * unionGraphs.length,
 							marginBottom: "1em",
 						}}
