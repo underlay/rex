@@ -6,11 +6,14 @@ import { Store } from "n3"
 import { Dataset } from "rdf-cytoscape"
 
 import { loadText } from "../lib/loader.js"
+import { getCoproduct } from "../lib/pushout.js"
 import { materialize, getDataset } from "../lib/materialize.js"
 import { Schema } from "../lib/schema.js"
 
 import { parseJsonLd } from "./parse.js"
 import Assertion from "./assertion.jsx"
+
+const graphHeight = 300
 
 const reduceContext = ([_, path], { key, type: { name } }) => [
 	name,
@@ -31,13 +34,15 @@ function getError({ context, message }) {
 
 export default function Example(props) {
 	const [error, setError] = useState(null)
-	const [tables, setTables] = useState(null)
 	const [assertions, setAssertions] = useState([])
 	const [example, setExample] = useState(props.initialExample)
 	const [schema, setSchema] = useState(null)
 	const [view, setView] = useState("table")
 	const setTable = useCallback(({}) => setView("table"), [])
 	const setGraph = useCallback(({}) => setView("graph"), [])
+	const [viewUnion, setViewUnion] = useState("graph")
+	const setUnionGraph = useCallback(({}) => setViewUnion("graph"), [])
+	const setUnionHide = useCallback(({}) => setViewUnion(null), [])
 
 	useEffect(() => {
 		const names = props.examples.get(example)
@@ -48,9 +53,9 @@ export default function Example(props) {
 			),
 		]).then(([shex, ...docs]) =>
 			Promise.all(docs.map((doc) => parseJsonLd(doc, null))).then(
-				(datasets) => {
+				(assertions) => {
 					setValue(shex)
-					setAssertions(datasets)
+					setAssertions(assertions)
 				}
 			)
 		)
@@ -66,10 +71,6 @@ export default function Example(props) {
 				setSchema(null)
 			}
 
-			if (tables !== null) {
-				setTables(null)
-			}
-
 			if (error !== null) {
 				setError(null)
 			}
@@ -83,7 +84,6 @@ export default function Example(props) {
 				if (result._tag === "Left") {
 					const err = getError(result.left.pop())
 					setSchema(null)
-					setTables(null)
 					setError(err)
 				} else {
 					setSchema(result.right)
@@ -93,13 +93,26 @@ export default function Example(props) {
 			.catch((err) => setError(err.toString()))
 	}, [shex])
 
-	useEffect(() => {
-		if (schema !== null && assertions.length > 0) {
-			const datasets = assertions.map(({ dataset }) => dataset)
-			const tables = materialize(schema, datasets)
-			setTables(tables)
+	const union = useMemo(() => {
+		if (assertions === null) {
+			return null
 		}
-	}, [schema, assertions])
+		return getCoproduct(assertions.map(({ dataset }) => dataset))
+	}, [assertions])
+
+	const unionGraphs = useMemo(() => {
+		if (union === null) {
+			return null
+		}
+		return union.getGraphs(null, null, null)
+	})
+
+	const tables = useMemo(() => {
+		if (schema !== null && union !== null && union.size > 0) {
+			return materialize(schema, union)
+		}
+		return null
+	})
 
 	const handleUpload = useCallback(
 		async (event) => {
@@ -120,7 +133,6 @@ export default function Example(props) {
 			if (i !== -1) {
 				if (assertions.length === 1) {
 					setAssertions([])
-					setTables(null)
 				} else {
 					setAssertions([...assertions.slice(0, i), ...assertions.slice(i + 1)])
 				}
@@ -142,7 +154,6 @@ export default function Example(props) {
 								key={key}
 								onClick={() => {
 									setSchema(null)
-									setTables(null)
 									setError(null)
 									setExample(key)
 								}}
@@ -158,7 +169,26 @@ export default function Example(props) {
 					onChange={handleChange}
 					spellCheck={false}
 				></textarea>
-				<h2>Assertions</h2>
+				<header>
+					<h2>Assertions</h2>
+					<button onClick={setUnionHide} disabled={viewUnion === null}>
+						Hide
+					</button>
+					<button onClick={setUnionGraph} disabled={viewUnion === "graph"}>
+						View merged dataset
+					</button>
+				</header>
+				{union !== null && viewUnion === "graph" ? (
+					<div
+						className="rdf-cytoscape"
+						style={{
+							height: graphHeight * unionGraphs.length,
+							marginBottom: "1em",
+						}}
+					>
+						<Dataset store={union} focus={undefined} />
+					</div>
+				) : null}
 				<label>
 					<span>Upload JSON-LD assertions:</span>
 					<input
@@ -216,7 +246,6 @@ function renderError(error) {
 }
 
 function Result({ schema, tables, view }) {
-	console.log("rendering result", tables, view)
 	const store = useMemo(() => {
 		if (view === "graph") {
 			const dataset = getDataset(schema, tables)

@@ -18,7 +18,7 @@
 		"ipld-raw": "^5.0.0",
 		"jsonld": "^3.1.1",
 		"rdf-canonize": "^1.1.0",
-		"rdf-cytoscape": "^0.2.3",
+		"rdf-cytoscape": "^0.2.6",
 		"react": "^16.13.1",
 		"react-dom": "^16.13.1",
 		"source-map-loader": "^1.0.1",

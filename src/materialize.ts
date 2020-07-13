@@ -1,5 +1,5 @@
 import * as RDF from "rdf-js"
-import { DataFactory } from "n3"
+import { DataFactory, Store } from "n3"
 import { TypeOf } from "io-ts/es6/index.js"
 
 import {
@@ -20,13 +20,13 @@ import { rdfTypeNode } from "./vocab.js"
 import nodeSatisfies from "./satisfies.js"
 import { toId, fromId, getRange, preImage, image } from "./utils.js"
 import { getTypeOrder, getOrder, Order } from "./order.js"
-import { cospan } from "./cospan.js"
+import { getCospan } from "./pushout.js"
 import { collect } from "./collect.js"
 
 export type Table = Map<string, Map<string, Set<string>>>
 export function materialize(
 	s: TypeOf<typeof Schema>,
-	datasets: RDF.Quad[][]
+	coproduct: Store
 ): Map<string, Table> {
 	const types = getTypeMap(s)
 	const state: State = Object.freeze(
@@ -38,7 +38,7 @@ export function materialize(
 				references: new Map(),
 				metaReferences: new Map(),
 			},
-			cospan(types, datasets)
+			getCospan(types, coproduct)
 		)
 	)
 

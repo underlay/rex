@@ -15,6 +15,7 @@
 		"url": "http://example.com/john-doe",
 		"name": "JOHN D",
 		"age": 40,
+		"foo": {},
 		"children": {
 			"@type": "Person",
 			"url": "http://example.com/jack",
