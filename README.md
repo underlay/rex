@@ -352,7 +352,9 @@ _:b3 <http://schema.org/url> <http://example.com/jill> .
 
 This dataset is easier to look at graphically. Here, rounded rectangles represent distinct blank nodes, and the hard rectangles with black text are IRIs:
 
-![](<examples/Screenshot_2020-07-15%20rex(1).png>)
+<p align="center">
+  <img src="https://github.com/underlay/rex/blob/master/examples/Screenshot_2020-07-15%20rex(1).png" width="912">
+</p>
 
 Since nodes `_:b0` ("JOHN D") and `_:b2` ("John Doe") have the same `schema:url`, they're merged in an intermediate dataset before the shape is instantiated. This means that a (new) single blank node has all of the following triples:
 
@@ -367,7 +369,9 @@ _:p0 <http://schema.org/children> _:b3 .
 
 Now we have a surplus of `schema:name` values! Since we didn't specify a sort order for the `schema:name` property, Rex falls back to its default order, `rex:first`. `"JOHN D"` lexicographically preceeds `"John Doe"`, so it's `"JOHN D"` that shows up in the final materialized instance:
 
-![](<examples/Screenshot_2020-07-15%20rex(2).png>)
+<p align="center">
+  <img src="https://github.com/underlay/rex/blob/master/examples/Screenshot_2020-07-15%20rex(2).png" width="800">
+</p>
 
 `rex:key` expressions annotate shapes in the schema - not triple constraints - but they don't actually relate or apply to the shape itself at all. Before instantiating, Rex just collects all the keys that are defined for any of the shapes and (without even looking at what the shapes are) merges all the blank nodes that have the objects for those predicates. This is confusing, and sometimes leads to unexpected behaviour (like unrelated, nonconforming blank nodes getting "accidentally" merged), so this is likely to change in the future as we figure out more a natural way to induce useful equivalence relations.
 
@@ -425,7 +429,9 @@ _:b0 <http://schema.org/url> <http://local-news.com/2020/07/16/bake-sale>
 
 Maybe this is a series of versions of the same dataset, edited a couple times, or maybe it's three independent sources trying to publish similar data about the same article. We could take their direct union (not merging any blank nodes) to get a dataset like this:
 
-![](<examples/Screenshot_2020-07-16%20rex(2).png>)
+<p align="center">
+  <img src="https://github.com/underlay/rex/blob/master/examples/Screenshot_2020-07-16%20rex(2).png" width="800">
+</p>
 
 Let's call this initial, un-merged union dataset the _preimage_.
 
@@ -438,7 +444,9 @@ This is what `rex:with` is for. When we add `// rex:with schema:lastModified // 
 
 Putting it all together, we instantiate exactly the result we expect:
 
-![](<examples/Screenshot_2020-07-16%20rex(1).png>)
+<p align="center">
+  <img src="https://github.com/underlay/rex/blob/master/examples/Screenshot_2020-07-16%20rex(1).png" width="800">
+</p>
 
 There are a few important things to note about this example:
 
@@ -491,7 +499,9 @@ The data looks similar to the situation we had in the `rex:with` example, but th
 
 As you might expect, `// rex:meta schema:dateModified // rex:sort rex:latest // rex:in ex:Update` lets us sort the `schema:name` values by the `schema:dateModified` of the graph they came from, in this case prefering `"John Doe"` to `"JOHN D"`:
 
-![](<examples/Screenshot_2020-07-16%20rex(3).png>)
+<p align="center">
+  <img src="https://github.com/underlay/rex/blob/master/examples/Screenshot_2020-07-16%20rex(3).png" width="600">
+</p>
 
 This structure - using graph names as the subject of metadata properties like dates - is actually much more versatile than using `rex:with`, where _the shape itself had to have referenced property_. With `rex:meta`, you can fragment your data (no matter what it looks like) into named graphs, give those named graphs aribtrary metadata, and then use metadata to control which values to prefer for each property independently.
 
