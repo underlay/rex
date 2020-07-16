@@ -8,7 +8,7 @@ This is an experimental language for annotating [ShEx](https:/shex.io) shapes wi
 
 A Rex schema is a set of named shapes, each of which is a set of properties. Each property has a unique (within the shape) predicate, a minimum and maximum cardinality, and a value expression that is either a pure function over IRIs and Literals `(term: RDF.NamedNode | RDF.Literal) => boolean` or a reference to another shape in the same schema.
 
-Rex schemas are expressed using a strict subset of the [ShEx](https://shex.io/) language. The schemas we allow are very similar to the [ShEx Lite defined by DCMI](https://dcmi.github.io/dcap/shex_lite/micro-spec.html), with a few differences:
+Rex schemas are expressed using a strict subset of the [ShEx](https://shex.io/) language. The schemas we allow are very similar to [ShEx Lite defined by DCMI](https://dcmi.github.io/dcap/shex_lite/micro-spec.html), with a few differences:
 
 - We require that all shapes have a blank node subject constraint.
 - Value expressions cannot be `{ "nodeKind": "bnode" }` or `{ "nodeKind": "nonliteral" }` node constraints; only IRI and Literal values will be tested. There's nothing to stop a user from expressing "this value can be any blank node" by reference an empty shape; we just require that it be given a name and referenced by a [`shapeRef`](http://shex.io/shex-semantics/index.html#prod-shapeRef).
