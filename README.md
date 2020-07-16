@@ -2,7 +2,7 @@
 
 > Reduction Expressions
 
-This is an experimental language for annotating [ShEx](https:/shex.io) shapes with _reduction expressions_. Reduction expressions let you materialize structured instances from any RDF dataset.
+This is an experimental language for annotating [ShEx](https://shex.io) shapes with _reduction expressions_. Reduction expressions let you materialize structured instances from any RDF dataset.
 
 ## Table of Contents
 
