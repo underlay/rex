@@ -68,7 +68,7 @@ type Table = Map<RDF.BlankNode, { [predicate: string]: RDF.Term[] }>
 function materialize(
 	schema: Rex.Schema,
 	dataset: RDF.Quad[]
-): Map<string, Table>
+): Map<string, Table> {}
 ```
 
 ... where `materialize` returns, for each shape in the schema, a materialized `Table` with a row for each matching blank node subject, and columns for each predicate in the shape.
