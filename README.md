@@ -425,7 +425,7 @@ _:b0 <http://schema.org/url> <http://local-news.com/2020/07/16/bake-sale>
 
 Maybe this is a series of versions of the same dataset, edited a couple times, or maybe it's three independent sources trying to publish similar data about the same article. We could take their direct union (not merging any blank nodes) to get a dataset like this:
 
-![](<Screenshot_2020-07-16%20rex(2).png>)
+![](<examples/Screenshot_2020-07-16%20rex(2).png>)
 
 Let's call this initial, un-merged union dataset the _preimage_.
 
@@ -438,7 +438,7 @@ This is what `rex:with` is for. When we add `// rex:with schema:lastModified // 
 
 Putting it all together, we instantiate exactly the result we expect:
 
-![](<Screenshot_2020-07-16%20rex(1).png>)
+![](<examples/Screenshot_2020-07-16%20rex(1).png>)
 
 There are a few important things to note about this example:
 
@@ -491,7 +491,7 @@ The data looks similar to the situation we had in the `rex:with` example, but th
 
 As you might expect, `// rex:meta schema:dateModified // rex:sort rex:latest // rex:in ex:Update` lets us sort the `schema:name` values by the `schema:dateModified` of the graph they came from, in this case prefering `"John Doe"` to `"JOHN D"`:
 
-![](<Screenshot_2020-07-16%20rex(3).png>)
+![](<examples/Screenshot_2020-07-16%20rex(3).png>)
 
 This structure - using graph names as the subject of metadata properties like dates - is actually much more versatile than using `rex:with`, where _the shape itself had to have referenced property_. With `rex:meta`, you can fragment your data (no matter what it looks like) into named graphs, give those named graphs aribtrary metadata, and then use metadata to control which values to prefer for each property independently.
 
