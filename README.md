@@ -465,11 +465,11 @@ Putting it all together, we instantiate exactly the result we expect:
   <img src="https://github.com/underlay/rex/blob/master/examples/Screenshot_2020-07-16%20rex(1).png" width="800">
 </p>
 
-There are a few important things to note about this example:
+There are a few important things to note about `rex:with`:
 
 - The sort order that's given with the `rex:with` annotation must apply to the _referenced_ triple constraint, _not_ to the values you're using `rex:with` to sort. In our example, this means that `rex:latest` must match the type of `schema:lastModified` (`xsd:dateTime`), not `schema:headline` (`xsd:string`). Which it does!
 - You have to give an explicit `rex:sort` annotation alongside `rex:with`, even if the referenced triple constraint already has the same `rex:sort` annotation on it. This often ends up being a little redundant, but it makes it more clear that the two sorting operations are done independently.
-- In the example, only one of the three preimage blank nodes has a `schema:datePublished` property, all three of the preimage blank nodes have a `schema:dateModified` property, but the reduced result has exactly one of each (as required by the schema definition). `rex:with` is very useful for "accumulating" values over graphs that have partial data in this way.
+- In the example, only one of the three preimage blank nodes has a `schema:datePublished` property, while all three of the preimage blank nodes have a `schema:dateModified` property, but the reduced result has exactly one of each (as required by the schema definition). `rex:with` is very useful for "accumulating" values over graphs that have partial data in this way.
 - The three datasets themselves don't have timestamps associated with them, and they're not ordered. Everything that we're dealing with uses the triples in the graphs directly. Rex doesn't really know or care about the names and semantics, it just cares about total orders and equivalence relations.
 
 ### `rex:meta` annotations
