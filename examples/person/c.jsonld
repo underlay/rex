@@ -1,0 +1,32 @@
+{
+	"@context": {
+		"@vocab": "http://schema.org/",
+		"url": {
+			"@type": "@id"
+		}
+	},
+	"@graph": [
+		{
+			"@type": "Person",
+			"url": "http://example.com/john-doe",
+			"name": "JOHN D",
+			"children": {
+				"@type": "Person",
+				"url": "http://example.com/jack",
+				"name": "Jack"
+			}
+		},
+		{
+			"@type": "Person",
+			"url": "http://example.com/john-doe",
+			"name": "John Doe",
+			"children": [
+				{
+					"@type": "Person",
+					"url": "http://example.com/jill",
+					"name": "Jill"
+				}
+			]
+		}
+	]
+}
