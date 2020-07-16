@@ -1,0 +1,19 @@
+{
+	"@context": {
+		"@vocab": "http://schema.org/",
+		"xsd": "http://www.w3.org/2001/XMLSchema#"
+	},
+	"@type": "Article",
+	"headline": "Bakr Sale Happening at Community Center TOday",
+	"datePublished": {
+		"@value": "2020-07-16T16:46:25.152Z",
+		"@type": "xsd:dateTime"
+	},
+	"dateModified": {
+		"@value": "2020-07-16T16:46:25.152Z",
+		"@type": "xsd:dateTime"
+	},
+	"url": {
+		"@id": "http://local-news.com/2020/07/16/bake-sale"
+	}
+}

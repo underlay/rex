@@ -30,7 +30,7 @@ _:person bnode {
   # `a` is always shorthand for the rdf:type predicate
   a [ schema:Person ] ;
 
-  # zero of one triples with predicate schema:url and an IRI object
+  # zero or one triples with predicate schema:url and an IRI object
   schema:url iri ? ;
 
   # exactly one triple with predicate schema:name and a literal object
@@ -321,7 +321,7 @@ PREFIX rex: <http://underlay.org/ns/rex#>
 _:person bnode {
   a [ schema:Person ] ;
   schema:url iri ;
-  schema:name xsd:string
+  schema:name xsd:string ;
   schema:children @_:person * ;
 } // rex:key schema:url
 ```
@@ -368,3 +368,131 @@ _:p0 <http://schema.org/children> _:b3 .
 Now we have a surplus of `schema:name` values! Since we didn't specify a sort order for the `schema:name` property, Rex falls back to its default order, `rex:first`. `"JOHN D"` lexicographically preceeds `"John Doe"`, so it's `"JOHN D"` that shows up in the final materialized instance:
 
 ![](<examples/Screenshot_2020-07-15%20rex(2).png>)
+
+`rex:key` expressions annotate shapes in the schema - not triple constraints - but they don't actually relate or apply to the shape itself at all. Before instantiating, Rex just collects all the keys that are defined for any of the shapes and (without even looking at what the shapes are) merges all the blank nodes that have the objects for those predicates. This is confusing, and sometimes leads to unexpected behaviour (like unrelated, nonconforming blank nodes getting "accidentally" merged), so this is likely to change in the future as we figure out more a natural way to induce useful equivalence relations.
+
+Typically the triple constraint that serves as a primary key will have a cardinality of `{1,1}` (which is the default if none is specified) and won't have any sort annotations, since we expect it to only have one value.
+
+### `rex:with` annotations
+
+`rex:with` annotates a triple constraint and takes as a value a different predicate in the same shape. It must be used with an additional `rex:sort` annotation, like this:
+
+```
+PREFIX schema: <http://schema.org/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX rex: <http://underlay.org/ns/rex#>
+
+_:article bnode {
+  a [ schema:Article ] ;
+  schema:headline xsd:string // rex:with schema:dateModified // rex:sort rex:latest ;
+  schema:datePublished xsd:dateTime // rex:sort rex:earliest ;
+  schema:dateModified xsd:dateTime // rex:sort rex:latest ;
+  schema:url iri ;
+} // rex:key schema:url
+```
+
+Notice that we can have two annotations on the same line! Both come before the terminating `;`. Sometimes it's easier to write them on their own line:
+
+```
+schema:headline xsd:string
+  // rex:with schema:dateModified
+  // rex:sort rex:latest ;
+```
+
+But what kind of situation are we working with here? What is this supposed to accomplish? Suppose that we had a series of RDF datasets that looked like this:
+
+```
+_:b0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Article> .
+_:b0 <http://schema.org/headline> "Bakr Sale Happening at Community Center TOday" .
+_:b0 <http://schema.org/datePublished> "2020-07-16T16:46:25.152Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+_:b0 <http://schema.org/dateModified> "2020-07-16T16:46:25.152Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+_:b0 <http://schema.org/url> <http://local-news.com/2020/07/16/bake-sale>
+```
+
+```
+_:b0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Article> .
+_:b0 <http://schema.org/headline> "Bake Sale at Community Center Today" .
+_:b0 <http://schema.org/dateModified> "2020-07-16T16:47:47.106Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+_:b0 <http://schema.org/url> <http://local-news.com/2020/07/16/bake-sale>
+```
+
+```
+_:b0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Article> .
+_:b0 <http://schema.org/headline> "Community Center Bake Sale Today" .
+_:b0 <http://schema.org/dateModified> "2020-07-16T16:49:32.366Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+_:b0 <http://schema.org/url> <http://local-news.com/2020/07/16/bake-sale>
+```
+
+Maybe this is a series of versions of the same dataset, edited a couple times, or maybe it's three independent sources trying to publish similar data about the same article. We could take their direct union (not merging any blank nodes) to get a dataset like this:
+
+![](<Screenshot_2020-07-16%20rex(2).png>)
+
+Let's call this initial, un-merged union dataset the _preimage_.
+
+Now it's natural to expect that in the merged, instantiated table, we would want to include the most recent value for `schema:lastModified`. And we know how to do this using `// rex:sort rex:latest`! But we also probably want to include the "most recent" value for `schema:headline`, and that doesn't depend on the actual `xsd:string` objects at all. How do we express "take the headline from the blank node with the most recent timestamp"?
+
+This is what `rex:with` is for. When we add `// rex:with schema:lastModified // rex:sort rex:latest`, we're saying two things:
+
+1. Filter the values of `schema:headline` to only keep the ones that _co-occur with at least one `schema:lastModified` value in the preimage_. In other words, only keep the `schema:headline` values that come from a pre-merge blank node that also has one or more `schema:lastModified` values.
+2. When sorting the filtered values for `schema:headline`, prefer the ones that are associated with the later `schema:lastModified` values. This is a little tricky because a) any one value for `schema:headline` might actually be associated with multiple different preimage blank nodes, and b) each of those pre-image blank nodes might have multiple `schema:lastModified` values (neither of these are the case in our example, but they could occur in general). Practically, this means populating an "association map" from unique `schema:headline` values to _sets_ of `schema:lastModified` values, then sorting each set to find its "best" (in this case latest) candidate, and then sorting `schema:headline` values by comparing their respective latest candidates.
+
+Putting it all together, we instantiate exactly the result we expect:
+
+![](<Screenshot_2020-07-16%20rex(1).png>)
+
+There are a few important things to note about this example:
+
+- The sort order that's given with the `rex:with` annotation must apply to the _referenced_ triple constraint, _not_ to the values you're using `rex:with` to sort. In our example, this means that `rex:latest` must match the type of `schema:lastModified` (`xsd:dateTime`), not `schema:headline` (`xsd:string`). Which it does!
+- You have to give an explicit `rex:sort` annotation alongside `rex:with`, even if the referenced triple constraint already has the same `rex:sort` annotation on it. This often ends up being a little redundant, but it makes it more clear that the two sorting operations are done independently.
+- In the example, only one of the three preimage blank nodes has a `schema:datePublished` property, all three of the preimage blank nodes have a `schema:dateModified` property, but the reduced result has exactly one of each (as required by the schema definition). `rex:with` is very useful for "accumulating" values over graphs that have partial data in this way.
+- The three datasets themselves don't have timestamps associated with them, and they're not ordered. Everything that we're dealing with uses the triples in the graphs directly. Rex doesn't really know or care about the names and semantics, it just cares about total orders and equivalence relations.
+
+### `rex:meta` annotations
+
+`rex:meta` works just like `rex:with`, except instead of referencing a sibling triple constraint in the same shape, `rex:meta` is used in conjunction with `rex:in` to reference a triple constraint in the shape that `rex:in` references!
+
+Let's look at an expanded version of the example we used to illustrate `rex:in`:
+
+```
+PREFIX schema: <http://schema.org/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX rex: <http://underlay.org/ns/rex#>
+PREFIX ex: <http://example.com/>
+
+ex:Person bnode {
+  schema:url iri ;
+  schema:name xsd:string
+    # This refers to the `schema:dateModified` constraint *in* the `ex:Update` shape!
+    // rex:meta schema:dateModified
+    // rex:sort rex:latest
+    // rex:in ex:Update ;
+} // rex:key schema:url
+
+ex:Update bnode {
+  schema:dateModified xsd:dateTime ;
+}
+```
+
+And suppose we had a couple datasets:
+
+```
+_:b0 <http://schema.org/url> <http://example.com/john-doe> _:b1 .
+_:b0 <http://schema.org/name> "JOHN D" _:b1 .
+_:b1 <http://schema.org/dateModified> "2020-07-16T19:01:23.062Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+```
+
+```
+_:b0 <http://schema.org/url> <http://example.com/john-doe> _:b1 .
+_:b0 <http://schema.org/name> "John Doe" _:b1 .
+_:b1 <http://schema.org/dateModified> "2020-07-16T19:01:23.062Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+```
+
+The data looks similar to the situation we had in the `rex:with` example, but the date we want to sort by is now a property of the _graph term_, not the subject!
+
+As you might expect, `// rex:meta schema:dateModified // rex:sort rex:latest // rex:in ex:Update` lets us sort the `schema:name` values by the `schema:dateModified` of the graph they came from, in this case prefering `"John Doe"` to `"JOHN D"`:
+
+![](<Screenshot_2020-07-16%20rex(3).png>)
+
+This structure - using graph names as the subject of metadata properties like dates - is actually much more versatile than using `rex:with`, where _the shape itself had to have referenced property_. With `rex:meta`, you can fragment your data (no matter what it looks like) into named graphs, give those named graphs aribtrary metadata, and then use metadata to control which values to prefer for each property independently.
+
+In many ways, `rex:meta` is the single most important piece of functionality that all of Rex is designed to enable. It essentially allows people to use RDF graphs as _transactions_ by _defining application semantics_ using reduction expressions in the Rex schema. Nothing like this is really possible in the RDF world right now - people update Triplestores by directly adding and removing quads, and people share big static snapshots of datasets, but nobody is using declarative schemas to combine and overwrite graphs iwth overlapping partial data. And the best thing about it is that you can't break it - you can throw in a literally arbirary RDF dataset into the union, and in the worst case it just won't contribute anything to the reduced output at all. The entire instantiation operation is well-defined over any pair of a Rex schema and an RDF dataset, and it's guaranteed to extract every matching instance that exists.
