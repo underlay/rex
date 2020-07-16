@@ -4,6 +4,23 @@
 
 This is an experimental language for annotating [ShEx](https:/shex.io) shapes with _reduction expressions_. Reduction expressions let you materialize structured instances from any RDF dataset.
 
+## Table of Contents
+
+- [Schemas](#schemas)
+- [Validation vs Materialization](#validation-vs-materialization)
+- [Annotations](#annotations)
+  - [`rex:sort` annotations](#rexsort-annotations)
+    - [Lexicographic orders](#lexicographic-orders)
+    - [Numeric orders](#numeric-orders)
+    - [Temporal orders](#temporal-orders)
+    - [Boolean orders](#boolean-orders)
+  - [`rex:in` annotations](#rexin-annotations)
+    - [Optimistic instantiation](#optimistic-instantiation)
+  - [`rex:key` annotations](#rexkey-annotations)
+  - [`rex:with` annotations](#rexwith-annotations)
+  - [`rex:meta` annotations](#rexmeta-annotations)
+
+
 ## Schemas
 
 A Rex schema is a set of named shapes, each of which is a set of properties. Each property has a unique (within the shape) predicate, a minimum and maximum cardinality, and a value expression that is either a pure function over IRIs and Literals `(term: RDF.NamedNode | RDF.Literal) => boolean` or a reference to another shape in the same schema.
