@@ -160,7 +160,7 @@ would materialize a single table with a single row with single column `http://sc
 - `// rex:sort rex:greatest`
 - `// rex:sort rex:least`
 
-The two numeric orders only apply to node constraints that include a fixed datatype constraint that is one of the numeric datatypes defined in XSD Schema:
+The two numeric orders only apply to node constraints that include a fixed datatype constraint that is one of the numeric datatypes defined in [XSD Schema](https://www.w3.org/TR/xmlschema11-2/#built-in-datatypes):
 
 - `xsd:decimal`
 - `xsd:double`
@@ -202,6 +202,7 @@ Like numeric orders, the two temporal orders only apply to specific fixed dataty
 
 - `xsd:date`
 - `xsd:dateTime`
+- `xsd:dateTimeStamp`
 
 ... which themselves are constrained to have valid ISO 8601 dates as values (ShEx and Rex both check this by default).
 
@@ -302,15 +303,13 @@ both "`_:b0` validates `ex:Foo`" and "`_:b0` does not validate `ex:Foo`" are sel
 
 ### `rex:key` annotations
 
-Rex promotes an unorthodox perspective on RDF data modeling, which is basically summarized by the prescription/assumption/ethos
-
 > Never use IRIs as subjects
 
-This is why all Rex shapes are required to have a `{ "nodeKind": "bnode" }` subject constraint, and why node constraints can only match IRIs or Literals (or be explicit shape references).
+Rex promotes an unorthodox perspective on RDF data modeling, which is basically summarized by the prescription/assumption/ethos "Never use IRIs as subjects". This is why all Rex shapes are required to have a `{ "nodeKind": "bnode" }` subject constraint, and why node constraints can only match IRIs or Literals (or be explicit shape references).
 
-This "blank node maximalist" philosophy was motivated by a perceived failure of URIs to actually identify coherent abstract resources in practice. Instead of using IRIs as "absolute" subjects, Rex encourages publishers to encode all of their resources using blank nodes, and move what would be an IRI subject to the object of some distinguished identifier property.
+This "blank node maximalist" philosophy was motivated by a perceived failure of IRIs to actually identify coherent abstract resources in practice. Instead of using IRIs as "absolute" subjects, Rex encourages publishers to encode all of their resources using blank nodes, and move what would be an IRI subject to the object of some distinguished identifier property.
 
-Blank node maximalism undermines what is commonly seen as the core _purpose_ of RDF - that merging two separate datasets yields a semanticly meaningful union, because URIs have global scope and can be trivially "joined". Blank node maximalism is also concerned with the merging of separate datasets, but takes a different approach: mergining is done by taking the union dataset and then inducing an equivalence relation over the blank nodes. This essentially **defers reconciliation from publication-time** (ie careful selection of absolute IRI subjects) **to consumption-time** (application of an equivalence relation).
+Blank node maximalism undermines what is commonly seen as the core _purpose_ of RDF - that merging two separate datasets yields a semanticly meaningful union, because IRIs have global scope and can be trivially "joined". Blank node maximalism is also concerned with the merging of separate datasets, but takes a different approach: mergining is done by taking the union dataset and then inducing an equivalence relation over the blank nodes. This essentially **defers reconciliation from publication-time** (ie careful selection of absolute IRI subjects) **to consumption-time** (application of an equivalence relation).
 
 In the most common case, where IRIs that would otherwise have been used as a subject are moved to a distinguished identifier property, the desired equivalence relation will resemble a primary key as used in joining relational data. This simplest kind of equivlance relation can be expressed in Rex using the `rex:key` annotation:
 
@@ -358,12 +357,12 @@ This dataset is easier to look at graphically. Here, rounded rectangles represen
 Since nodes `_:b0` ("JOHN D") and `_:b2` ("John Doe") have the same `schema:url`, they're merged in an intermediate dataset before the shape is instantiated. This means that a (new) single blank node has all of the following triples:
 
 ```
-_:m0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Person> .
-_:m0 <http://schema.org/url> <http://example.com/john-doe> .
-_:m0 <http://schema.org/name> "JOHN D" .
-_:m0 <http://schema.org/name> "John Doe" .
-_:m0 <http://schema.org/children> _:b1 .
-_:m0 <http://schema.org/children> _:b3 .
+_:p0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Person> .
+_:p0 <http://schema.org/url> <http://example.com/john-doe> .
+_:p0 <http://schema.org/name> "JOHN D" .
+_:p0 <http://schema.org/name> "John Doe" .
+_:p0 <http://schema.org/children> _:b1 .
+_:p0 <http://schema.org/children> _:b3 .
 ```
 
 Now we have a surplus of `schema:name` values! Since we didn't specify a sort order for the `schema:name` property, Rex falls back to its default order, `rex:first`. `"JOHN D"` lexicographically preceeds `"John Doe"`, so it's `"JOHN D"` that shows up in the final materialized instance:
