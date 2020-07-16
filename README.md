@@ -390,7 +390,7 @@ Now we have a surplus of `schema:name` values! Since we didn't specify a sort or
   <img src="https://github.com/underlay/rex/blob/master/examples/Screenshot_2020-07-15%20rex(2).png" width="800">
 </p>
 
-`rex:key` expressions annotate shapes in the schema - not triple constraints - but they don't actually relate or apply to the shape itself at all. Before instantiating, Rex just collects all the keys that are defined for any of the shapes and (without even looking at what the shapes are) merges all the blank nodes that have the objects for those predicates. This is confusing, and sometimes leads to unexpected behaviour (like unrelated, nonconforming blank nodes getting "accidentally" merged), so this is likely to change in the future as we figure out more a natural way to induce useful equivalence relations.
+`rex:key` expressions annotate shapes in the schema - not triple constraints - but they don't actually relate or apply to the shape itself at all. Before instantiating, Rex just collects all the keys that are defined for any of the shapes and (without even looking at what the shapes are) merges all the blank nodes that have the same objects for those predicates. This is confusing, and sometimes leads to unexpected behaviour (like unrelated, nonconforming blank nodes getting "accidentally" merged), so this is likely to change in the future as we figure out more a natural way to induce useful equivalence relations.
 
 Typically the triple constraint that serves as a primary key will have a cardinality of `{1,1}` (which is the default if none is specified) and won't have any sort annotations, since we expect it to only have one value.
 
