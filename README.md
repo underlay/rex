@@ -6,6 +6,7 @@ This is an experimental language for annotating [ShEx](https://shex.io) shapes w
 
 ## Table of Contents
 
+- [Background](#background)
 - [Schemas](#schemas)
 - [Validation vs Materialization](#validation-vs-materialization)
 - [Annotations](#annotations)
@@ -20,18 +21,21 @@ This is an experimental language for annotating [ShEx](https://shex.io) shapes w
   - [`rex:with` annotations](#rexwith-annotations)
   - [`rex:meta` annotations](#rexmeta-annotations)
 
+## Background
+
+This document assumes a working knowledge of both RDF and ShEx. Background on these can be can be found in the [RDF Primer](https://www.w3.org/TR/rdf11-primer/) and [ShEx Primer](http://shex.io/shex-primer/index.html) documents.
 
 ## Schemas
 
-A Rex schema is a set of named shapes, each of which is a set of properties. Each property has a unique (within the shape) predicate, a minimum and maximum cardinality, and a value expression that is either a pure function over IRIs and Literals `(term: RDF.NamedNode | RDF.Literal) => boolean` or a reference to another shape in the same schema.
+A Rex schema is a set of named shapes, each of which is a set of _triple constraints_, which we will also call _properties_. Each property has a unique (within the shape) predicate, a minimum and maximum cardinality, and a _value expression_ that is either a pure function over IRIs and Literals `(term: RDF.NamedNode | RDF.Literal) => boolean` or a reference to another shape in the same schema.
 
 Rex schemas are expressed using a strict subset of the [ShEx](https://shex.io/) language. The schemas we allow are very similar to [ShEx Lite defined by DCMI](https://dcmi.github.io/dcap/shex_lite/micro-spec.html), with a few differences:
 
 - We require that all shapes have a blank node subject constraint.
-- Value expressions cannot be `{ "nodeKind": "bnode" }` or `{ "nodeKind": "nonliteral" }` node constraints; only IRI and Literal values will be tested. There's nothing to stop a user from expressing "this value can be any blank node" by reference an empty shape; we just require that it be given a name and referenced by a [`shapeRef`](http://shex.io/shex-semantics/index.html#prod-shapeRef).
+- Value expressions cannot be `{ "nodeKind": "bnode" }` or `{ "nodeKind": "nonliteral" }` [node kind constraints](http://shex.io/shex-semantics/index.html#nodeKind); only IRI and Literal values will be tested. There's nothing to stop a user from expressing "this value can be any blank node" by referencing an empty shape; we just require that it be given a name and referenced using a [`shapeRef`](http://shex.io/shex-semantics/index.html#prod-shapeRef).
 - Conceptually, reduction expressions are defined over arbitrary predicates `(term: RDF.NamedNode | RDF.Literal) => boolean` as value expressions, not just the ones defined in ShEx (other predicates might be expressed with the [Semantic Actions](http://shex.io/shex-semantics/index.html#semantic-actions) extension mechanism).
 
-[src/schema.ts](src/schema.ts) exports an [io-ts](https://github.com/gcanti/io-ts) validator for compliant schemas.
+[src/schema.ts](src/schema.ts) exports an [io-ts](https://github.com/gcanti/io-ts) validator for compliant schemas in [ShExJ](http://shex.io/shex-semantics/index.html#shexj) form.
 
 In general, Rex only uses the syntax of ShEx as a convenient way to write node constraints. The semantics, especially with respect to maximum cardinalities, differ considerably.
 
