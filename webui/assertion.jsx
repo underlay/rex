@@ -31,18 +31,15 @@ export default function Assertion({ cid, dataset, onRemove }) {
 	const handleRemove = useCallback((_) => onRemove(cid), [cid, onRemove])
 
 	const [view, setView] = useState(null)
-	const handleHide = useCallback((event) => setView(null), [])
-	const handleGraph = useCallback((event) => setView("graph"), [])
-	const handleQuads = useCallback((event) => setView("quads"), [])
-
-	// const [open, setOpen] = useState(false)
-	// const handleChange = useCallback((event) => setOpen(event.target.checked), [])
+	const handleHide = useCallback(({}) => setView(null), [])
+	const handleGraph = useCallback(({}) => setView("graph"), [])
+	const handleQuads = useCallback(({}) => setView("quads"), [])
 
 	const store = useMemo(() => new Store(dataset), [dataset])
 
 	return (
 		<div className="assertion">
-			<pre>dweb:/ipld/{cid}</pre>
+			<pre>ul:{cid}</pre>
 			<header>
 				<span className="view">
 					<button disabled={view === null} onClick={handleHide}>

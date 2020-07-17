@@ -3,6 +3,8 @@ import { TypeOf } from "io-ts/es6/index.js"
 import { Schema, getExpressions, isEmptyProductShape } from "./schema.js"
 import { Order } from "./order.js"
 
+import RDF from "rdf-js"
+
 export type Instance = {
 	values: Map<string, Set<string>>
 	order: Order

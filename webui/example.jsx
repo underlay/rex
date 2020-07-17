@@ -1,102 +1,48 @@
 import React, { useState, useCallback, useEffect, useMemo } from "react"
 
-import { useDebounce } from "use-debounce"
-
 import { Store } from "n3"
 import { Dataset } from "rdf-cytoscape"
 
-import { loadText } from "../lib/loader.js"
 import { getCoproduct } from "../lib/pushout.js"
 import { materialize, getDataset } from "../lib/materialize.js"
-import { Schema } from "../lib/schema.js"
 
 import { parseJsonLd } from "./parse.js"
 import Assertion from "./assertion.jsx"
+import Schema from "./schema.jsx"
 
 const graphHeight = 300
 
-const reduceContext = ([_, path], { key, type: { name } }) => [
-	name,
-	path + "/" + key,
-]
-
-function getError({ context, message }) {
-	const [name, path] = context.reduce(reduceContext, ["", ""])
-	let err = `${path}: ${name}`
-	if (err.startsWith("//")) {
-		err = err.slice(1)
-	}
-	if (message !== undefined) {
-		err += `\n${message}`
-	}
-	return err
-}
-
 export default function Example(props) {
-	const [error, setError] = useState(null)
 	const [assertions, setAssertions] = useState([])
 	const [example, setExample] = useState(props.initialExample)
 	const [schema, setSchema] = useState(null)
 	const [view, setView] = useState("table")
 	const setTable = useCallback(({}) => setView("table"), [])
 	const setGraph = useCallback(({}) => setView("graph"), [])
-	const [viewUnion, setViewUnion] = useState("graph")
+	const [viewUnion, setViewUnion] = useState(null)
 	const setUnionGraph = useCallback(({}) => setViewUnion("graph"), [])
 	const setUnionHide = useCallback(({}) => setViewUnion(null), [])
 
+	const [shex, setShex] = useState("")
 	useEffect(() => {
-		const names = props.examples.get(example)
-		Promise.all([
-			fetch(`examples/${example}`).then((res) => res.text()),
-			...names.map((name) =>
-				fetch(`examples/${name}`).then((res) => res.json())
-			),
-		])
-			.then(([shex, ...docs]) =>
-				Promise.all(docs.map((doc) => parseJsonLd(doc, null))).then(
-					(assertions) => {
-						setValue(shex)
-						setAssertions(assertions)
-					}
-				)
+		fetch(`examples/${example}`)
+			.then((res) => res.text())
+			.then(setShex)
+			.catch((err) => console.error(err))
+
+		Promise.all(
+			props.examples.get(example).map((name) =>
+				fetch(`examples/${name}`)
+					.then((res) => res.json())
+					.then((doc) => parseJsonLd(doc, null))
 			)
+		)
+			.then(setAssertions)
 			.catch((err) => {
 				setAssertions([])
-				setError(err.toString())
+				console.error(err)
 			})
 	}, [example])
-
-	const [value, setValue] = useState("")
-	const handleChange = useCallback((event) => setValue(event.target.value), [])
-
-	const [shex] = useDebounce(value, 1000)
-	useEffect(() => {
-		if (shex === "") {
-			if (schema !== null) {
-				setSchema(null)
-			}
-
-			if (error !== null) {
-				setError(null)
-			}
-
-			return
-		}
-
-		loadText(shex, null)
-			.then((schema) => {
-				const result = Schema.decode(schema)
-				if (result._tag === "Left") {
-					const err = getError(result.left.pop())
-					setSchema(null)
-					setError(err)
-				} else {
-					setSchema(result.right)
-					setError(null)
-				}
-			})
-			.catch((err) => setError(err.toString()))
-	}, [shex])
 
 	const union = useMemo(() => {
 		if (assertions === null || assertions.length === 0) {
@@ -132,7 +78,9 @@ export default function Example(props) {
 				.then((newAssertions) =>
 					setAssertions(newAssertions.concat(assertions))
 				)
-				.catch((err) => setError(err.toString())),
+				.catch((err) =>
+					window.alert(`Error parsing JSON-LD: ${err.toString()}`)
+				),
 		[assertions]
 	)
 
@@ -163,7 +111,6 @@ export default function Example(props) {
 								key={key}
 								onClick={() => {
 									setSchema(null)
-									setError(null)
 									setExample(key)
 								}}
 							>
@@ -173,33 +120,26 @@ export default function Example(props) {
 					</span>
 				</header>
 
-				<textarea
-					value={value}
-					onChange={handleChange}
-					spellCheck={false}
-				></textarea>
+				<Schema value={shex} onChange={setSchema} />
+
 				<header>
 					<h2>Assertions</h2>
 					<button onClick={setUnionHide} disabled={viewUnion === null}>
 						Hide
 					</button>
 					<button onClick={setUnionGraph} disabled={viewUnion === "graph"}>
-						View merged dataset
+						View union dataset
 					</button>
 				</header>
 				{union !== null && viewUnion === "graph" ? (
 					<div
-						className="rdf-cytoscape"
-						style={{
-							border: "inset",
-							height: graphHeight * unionGraphs.length,
-							marginBottom: "1em",
-						}}
+						className="union rdf-cytoscape"
+						style={{ height: graphHeight * unionGraphs.length }}
 					>
 						<Dataset store={union} focus={undefined} />
 					</div>
 				) : null}
-				<label>
+				<label className="upload">
 					<span>Upload JSON-LD assertions:</span>
 					<input
 						type="file"
@@ -231,9 +171,7 @@ export default function Example(props) {
 				</header>
 
 				<div className="pushout rdf-cytoscape">
-					{error !== null ? (
-						renderError(error)
-					) : assertions.length === 0 ? (
+					{assertions.length === 0 ? (
 						<code>No assertions</code>
 					) : tables === null ? (
 						<code>loading...</code>
@@ -243,14 +181,6 @@ export default function Example(props) {
 				</div>
 			</section>
 		</React.Fragment>
-	)
-}
-
-function renderError(error) {
-	return (
-		<div className="error">
-			<pre>{error}</pre>
-		</div>
 	)
 }
 

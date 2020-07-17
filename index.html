@@ -27,12 +27,6 @@
 				display: flex;
 			}
 
-			textarea {
-				font-family: monospace;
-				background-color: mintcream;
-				height: 300px;
-			}
-
 			section {
 				padding: 0 1em;
 				display: flex;
@@ -53,16 +47,42 @@
 				flex: 1;
 			}
 
-			.rdf-cytoscape {
+			section.schema textarea {
+				font-family: monospace;
+				background-color: mintcream;
 				height: 300px;
-				margin: 0;
 			}
 
-			input[type="file"] {
+			section.schema div.error {
+				margin: 0.5em 0;
+				padding: 0.5em 0;
+				overflow-x: scroll;
+				background-color: mistyrose;
+				box-shadow: inset 0 0 0 1px lightslategray;
+			}
+
+			section.schema div.error pre {
+				width: max-content;
+				padding: 0 1em;
+			}
+
+			section.schema label.upload input {
 				float: right;
 			}
 
-			.assertion {
+			section.schema div.union.rdf-cytoscape {
+				border: inset;
+				margin-bottom: 1em;
+			}
+
+			section.schema .assertion .rdf-cytoscape {
+				height: 300px;
+				margin: 0;
+				border: none;
+				border-top: 1px solid #36454f;
+			}
+
+			section.schema .assertion {
 				border: inset;
 				margin: 0.5em 0;
 				background-color: floralwhite;
@@ -71,42 +91,29 @@
 				flex-direction: column;
 			}
 
-			.assertion pre {
+			section.schema .assertion pre {
 				margin: 0;
 				padding: 0.5em;
 			}
 
-			.assertion pre.quads {
+			section.schema .assertion pre.quads {
 				overflow: scroll;
 				border-top: 1px solid #36454f;
 			}
 
-			.assertion header {
+			section.schema .assertion header {
 				display: flex;
 				align-items: center;
 			}
 
-			.assertion header button {
+			section.schema .assertion header button {
 				cursor: pointer;
 				margin: 0.5em;
 			}
 
-			.assertion header .view {
+			section.schema .assertion header .view {
 				flex: 1;
 				user-select: none;
-			}
-
-			.assertion form label:hover {
-				text-decoration: underline;
-			}
-
-			.assertion form label input[type="checkbox"] {
-				cursor: inherit;
-			}
-
-			.assertion .rdf-cytoscape {
-				border: none;
-				border-top: 1px solid #36454f;
 			}
 
 			section.output {
@@ -124,48 +131,49 @@
 				flex: 1;
 			}
 
-			.pushout.rdf-cytoscape {
+			section.output .pushout.rdf-cytoscape {
 				height: 800px;
 				border: inset;
 				overflow-y: scroll;
 			}
 
-			.pushout.rdf-cytoscape .error,
-			.pushout.rdf-cytoscape > code {
+			section.output .pushout.rdf-cytoscape .error,
+			section.output .pushout.rdf-cytoscape > code {
 				margin: 1em;
 			}
 
-			section.table {
+			section.output section.table {
 				font-family: monospace;
 			}
 
-			section.table div {
+			section.output section.table div {
 				overflow-x: scroll;
+				padding-bottom: 1em;
 			}
 
-			section.table div table {
+			section.output section.table div table {
 				border-collapse: collapse;
 			}
 
-			section.table td,
-			section.table th {
+			section.output section.table td,
+			section.output section.table th {
 				padding: 2px 8px;
 				white-space: pre;
 				text-align: start;
 				vertical-align: baseline;
 			}
 
-			section.table td {
+			section.output section.table td {
 				border-top: 1px solid lightsteelblue;
 			}
 
-			section.table th,
-			section.table td {
+			section.output section.table th,
+			section.output section.table td {
 				border-left: 1px solid lightsteelblue;
 			}
 
-			section.table td:first-child,
-			section.table th:first-child {
+			section.output section.table td:first-child,
+			section.output section.table th:first-child {
 				border-left: none;
 			}
 		</style>

@@ -4,10 +4,12 @@ PREFIX rex: <http://underlay.org/ns/rex#>
 
 _:article bnode {
   a [ schema:Article ] ;
+  schema:url iri ;
   schema:headline xsd:string
     // rex:with schema:dateModified
     // rex:sort rex:latest ;
-  schema:datePublished xsd:dateTime // rex:sort rex:earliest ;
-  schema:dateModified xsd:dateTime // rex:sort rex:latest ;
-  schema:url iri ;
+  schema:datePublished xsd:dateTime
+    // rex:sort rex:earliest ;
+  schema:dateModified xsd:dateTime
+    // rex:sort rex:latest ;
 } // rex:key schema:url

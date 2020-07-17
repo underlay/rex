@@ -11,6 +11,10 @@ const examples = new Map([
 		"bib/schema.shex",
 		["bib/a.jsonld", "bib/b.jsonld", "bib/c.jsonld", "bib/d.jsonld"],
 	],
+	[
+		"article/schema.shex",
+		["article/a.jsonld", "article/b.jsonld", "article/c.jsonld"],
+	],
 ])
 
 async function main() {
