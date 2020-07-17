@@ -145,7 +145,7 @@ Rex annotations are just a pair of URIs `// [property] [value]` that come _befor
 
 ### `rex:sort` annotations
 
-The simplest kind of annotation is one that uses the `rex:sort` property to compare terms based on their lexical forms alone.
+The simplest kind of reduction expression uses the `rex:sort` annotation to compare terms based on their lexical forms alone.
 
 #### Lexicographic orders
 
@@ -326,11 +326,11 @@ both "`_:b0` validates `ex:Foo`" and "`_:b0` does not validate `ex:Foo`" are sel
 
 > Never use IRIs as subjects
 
-Rex promotes an unorthodox perspective on RDF data modeling, which is basically summarized by the prescription/assumption/ethos "Never use IRIs as subjects". This is why all Rex shapes are required to have a `{ "nodeKind": "bnode" }` subject constraint, and why node constraints can only match IRIs or Literals (or be explicit shape references).
+Rex promotes an unorthodox perspective on RDF data modeling, which is basically summarized by the prescription/assumption/ethos "never use IRIs as subjects". This is why all Rex shapes are required to have a `{ "nodeKind": "bnode" }` subject constraint, and why value expressions can only match IRIs or Literals (unless they are explicit shape references).
 
 This "blank node maximalist" philosophy was motivated by a perceived failure of IRIs to actually identify coherent abstract resources in practice. Instead of using IRIs as "absolute" subjects, Rex encourages publishers to encode all of their resources using blank nodes, and move what would be an IRI subject to the object of some distinguished identifier property.
 
-Blank node maximalism undermines what is commonly seen as the core _purpose_ of RDF - that merging two separate datasets yields a semanticly meaningful union, because IRIs have global scope and can be trivially "joined". Blank node maximalism is also concerned with the merging of separate datasets, but takes a different approach: mergining is done by taking the union dataset and then inducing an equivalence relation over the blank nodes. This essentially **defers reconciliation from publication-time** (ie careful selection of absolute IRI subjects) **to consumption-time** (application of an equivalence relation).
+Blank node maximalism undermines what is commonly seen as the core _purpose_ of RDF - that merging two separate datasets yields a semanticly meaningful union, because IRIs have global scope and can be trivially "joined". Blank node maximalism is also concerned with the merging of separate datasets, but takes a different approach: mergining is done by taking the union dataset and then inducing an equivalence relation over the blank nodes and merging the members of each equivalence class. This essentially **defers reconciliation from publication-time** (ie careful selection of absolute IRI subjects) **to consumption-time** (application of an equivalence relation).
 
 In the most common case, where IRIs that would otherwise have been used as a subject are moved to a distinguished identifier property, the desired equivalence relation will resemble a primary key as used in joining relational data. This simplest kind of equivlance relation can be expressed in Rex using the `rex:key` annotation:
 
@@ -416,7 +416,7 @@ _:article bnode {
 } // rex:key schema:url
 ```
 
-Notice that we can have two annotations on the same line! Both come before the terminating `;`. Sometimes it's easier to write them on their own line:
+Notice that we can have two annotations on the same line! Both come before the terminating `;`. Sometimes it's easier to write them on their own lines:
 
 ```
 schema:headline xsd:string
