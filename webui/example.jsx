@@ -6,7 +6,7 @@ import { Dataset } from "rdf-cytoscape"
 import { getCoproduct } from "../lib/pushout.js"
 import { materialize, getDataset } from "../lib/materialize.js"
 
-import { parseJsonLd } from "./parse.js"
+import { parseJsonLd, parseNQuads } from "./parse.js"
 import Assertion from "./assertion.jsx"
 import Schema from "./schema.jsx"
 
@@ -65,22 +65,39 @@ export default function Example(props) {
 		return null
 	}, [schema, union])
 
-	const handleUpload = useCallback(
-		(event) =>
+	const handleJsonLdUpload = useCallback(
+		(event) => {
 			Promise.all(
-				Array.from(event.target.files).map((file) =>
-					file
-						.text()
-						.then((text) => JSON.parse(text))
-						.then((doc) => parseJsonLd(doc, null))
-				)
+				Array.from(event.target.files).map(async (file) => {
+					const text = await file.text()
+					return parseJsonLd(JSON.parse(text), null)
+				})
 			)
-				.then((newAssertions) =>
+				.then((newAssertions) => {
 					setAssertions(newAssertions.concat(assertions))
-				)
+				})
+				.catch((err) => {
+					window.alert(`Error parsing JSON-LD document: ${err.toString()}`)
+				})
+		},
+		[assertions]
+	)
+
+	const handleNQuadsUpload = useCallback(
+		(event) => {
+			Promise.all(
+				Array.from(event.target.files).map(async (file) => {
+					const text = await file.text()
+					return parseNQuads(text)
+				})
+			)
+				.then((newAssertions) => {
+					setAssertions(newAssertions.concat(assertions))
+				})
 				.catch((err) =>
-					window.alert(`Error parsing JSON-LD: ${err.toString()}`)
-				),
+					window.alert(`Error parsing N-Quads file: ${err.toString()}`)
+				)
+		},
 		[assertions]
 	)
 
@@ -140,12 +157,21 @@ export default function Example(props) {
 					</div>
 				) : null}
 				<label className="upload">
-					<span>Upload JSON-LD assertions:</span>
+					<span>Upload JSON-LD documents:</span>
 					<input
 						type="file"
 						multiple={true}
-						onChange={handleUpload}
+						onChange={handleJsonLdUpload}
 						accept=".json,.jsonld,application/json,application/ld+json"
+					/>
+				</label>
+				<label className="upload">
+					<span>Upload N-Quads files:</span>
+					<input
+						type="file"
+						multiple={true}
+						onChange={handleNQuadsUpload}
+						accept=".nq,.nt,application/n-quads,application/n-triples"
 					/>
 				</label>
 				{assertions.map(({ cid, dataset }) => (
@@ -241,7 +267,7 @@ function Table({ shape, table }) {
 						</tr>
 						{rows.map(([id, properties]) => (
 							<tr key={id}>
-								<td key="id">{id}</td>
+								<td key="id">_:{id}</td>
 								{Array.from(properties).map(([predicate, values]) => (
 									<td key={predicate}>{Array.from(values).join("\n")}</td>
 								))}
