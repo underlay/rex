@@ -1,23 +1,23 @@
 import React, { useState, useCallback, useMemo } from "react"
 
-import { Store, StreamWriter } from "n3"
 import { Dataset } from "rdf-cytoscape"
-import { useEffect } from "react"
+import { Store, toId } from "n3.ts"
 
 const options = { format: "application/n-quads", blankNodePrefix: "_:" }
 function Quads({ store }) {
-	const [quads, setQuads] = useState(null)
-	useEffect(() => {
+	const quads = useMemo(() => {
 		let s = ""
-		const writer = new StreamWriter(options)
-			.on("data", (chunk) => (s += chunk))
-			.on("end", () => setQuads(s))
-			.on("error", (err) => console.error(err))
-
 		for (const quad of store.getQuads(null, null, null, null)) {
-			writer.write(quad)
+			s += toId(quad.subject) + " "
+			s += toId(quad.predicate) + " "
+			s += toId(quad.object) + " "
+			if (quad.graph.termType === "DefaultGraph") {
+				s += ".\n"
+			} else {
+				s += toId(quad.graph) + " .\n"
+			}
 		}
-		writer.end()
+		return s
 	}, [store])
 
 	if (quads === null) {

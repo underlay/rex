@@ -1,20 +1,8 @@
-import {
-	TypeOf,
-	Type,
-	type,
-	string,
-	literal,
-	union,
-	exact,
-	Context,
-	failure,
-	success,
-	identity,
-} from "io-ts/es6/index.js"
+import { Term, Terms, NamedNodeT, TermT, LiteralT } from "n3.ts"
 
-import RDF from "rdf-js"
+import t from "./io.js"
 
-import ShExParser from "@shexjs/parser"
+import * as ShExParser from "@shexjs/parser"
 
 import {
 	iriNodeKind,
@@ -35,66 +23,69 @@ import {
 
 import { xsd, rdf } from "./vocab.js"
 
-interface NamedNode<T extends string> extends RDF.NamedNode {
+interface NamedNode<T extends string> extends TermT<NamedNodeT> {
 	value: T
 }
 
-export interface TypedLiteral<T extends string> extends RDF.Literal {
+export interface TypedLiteral<T extends string> extends TermT<LiteralT> {
 	datatype: NamedNode<T>
 }
 
-function isTypedLiteral<T extends string>(
-	node: RDF.Term,
-	value: Type<T>
-): node is TypedLiteral<T> {
-	return node.termType === "Literal" && value.is(node.datatype.value)
-}
+const isTypedLiteral = <T extends string>(
+	node: Term<Terms>,
+	value: t.Type<T>
+): node is TypedLiteral<T> =>
+	node.termType === "Literal" &&
+	node.language === "" &&
+	value.is(node.datatype.value)
 
-const typedLiteral = type({
-	termType: literal("Literal"),
-	value: string,
-	language: literal(""),
-	datatype: type({ termType: literal("NamedNode"), value: string }),
+const baseLiteral = t.type({
+	termType: t.literal("Literal"),
+	value: t.string,
+	language: t.string,
+	datatype: t.type({ termType: t.literal("NamedNode"), value: t.string }),
 })
 
 export const TypedLiteral = <T extends string>(
-	value: Type<T>
-): Type<TypedLiteral<T>, TypedLiteral<T>, RDF.Term> =>
-	new Type(
+	value: t.Type<T>
+): t.Type<TypedLiteral<T>, TypedLiteral<T>, Term<Terms>> =>
+	new t.Type(
 		"TypedLiteral",
 		(node: unknown): node is TypedLiteral<T> =>
-			typedLiteral.is(node) && value.is(node.datatype.value),
-		(input: RDF.Term, context: Context) => {
+			baseLiteral.is(node) &&
+			node.language === "" &&
+			value.is(node.datatype.value),
+		(input: Term, context: t.Context) => {
 			return isTypedLiteral(input, value)
-				? success(input)
-				: failure(input, context)
+				? t.success(input)
+				: t.failure(input, context)
 		},
-		identity
+		t.identity
 	)
 
 const integerPattern = /^[+-]?[0-9]+$/
 const decimalPattern = /^[+\-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+\-]?[0-9]+)?$/
 
-export const integerDatatype = union([
-	literal(xsd.integer),
-	literal(xsd.positiveInteger),
-	literal(xsd.nonPositiveInteger),
-	literal(xsd.negativeInteger),
-	literal(xsd.nonNegativeInteger),
-	literal(xsd.long),
-	literal(xsd.int),
-	literal(xsd.short),
-	literal(xsd.byte),
-	literal(xsd.unsignedLong),
-	literal(xsd.unsignedInt),
-	literal(xsd.unsignedShort),
-	literal(xsd.unsignedByte),
+export const integerDatatype = t.union([
+	t.literal(xsd.integer),
+	t.literal(xsd.positiveInteger),
+	t.literal(xsd.nonPositiveInteger),
+	t.literal(xsd.negativeInteger),
+	t.literal(xsd.nonNegativeInteger),
+	t.literal(xsd.long),
+	t.literal(xsd.int),
+	t.literal(xsd.short),
+	t.literal(xsd.byte),
+	t.literal(xsd.unsignedLong),
+	t.literal(xsd.unsignedInt),
+	t.literal(xsd.unsignedShort),
+	t.literal(xsd.unsignedByte),
 ])
 
-export const integer: Type<
+export const integer: t.Type<
 	TypedLiteral<integerDatatype>,
 	TypedLiteral<integerDatatype>,
-	RDF.Term
+	Term
 > = TypedLiteral(integerDatatype)
 
 export type integerDatatype = keyof typeof integerRanges
@@ -130,7 +121,7 @@ export const encodeInteger = ({
 	value,
 }: TypedLiteral<integerDatatype>): number => parseInt(value)
 
-export const decimal = TypedLiteral(literal(xsd.decimal))
+export const decimal = TypedLiteral(t.literal(xsd.decimal))
 
 export type decimalDatatype = typeof xsd.decimal
 
@@ -145,7 +136,7 @@ export const encodeDecimal = ({
 
 export type floatDatatype = typeof xsd.float
 
-export const float = TypedLiteral(literal(xsd.float))
+export const float = TypedLiteral(t.literal(xsd.float))
 
 export const isFloat = (input: unknown): input is TypedLiteral<floatDatatype> =>
 	float.is(input) &&
@@ -165,7 +156,7 @@ export const encodeFloat = ({ value }: TypedLiteral<floatDatatype>): number =>
 
 export type doubleDatatype = typeof xsd.double
 
-export const double = TypedLiteral(literal(xsd.double))
+export const double = TypedLiteral(t.literal(xsd.double))
 
 export const isDouble = (
 	input: unknown
@@ -189,7 +180,7 @@ const totalDigitsPattern = /[0-9]/g
 const fractionDigitsPattern = /^[+-]?[0-9]*\.?([0-9]*)$/
 
 function validateNumericFacets(
-	node: RDF.Term,
+	node: Term,
 	{
 		minexclusive,
 		maxexclusive,
@@ -197,7 +188,7 @@ function validateNumericFacets(
 		maxinclusive,
 		fractiondigits,
 		totaldigits,
-	}: TypeOf<typeof numericFacet>
+	}: t.TypeOf<typeof numericFacet>
 ): boolean {
 	let value: number
 
@@ -263,7 +254,7 @@ function validateNumericFacets(
 
 function validateStringFacets(
 	value: string,
-	{ length, minlength, maxlength, pattern, flags }: TypeOf<typeof stringFacet>
+	{ length, minlength, maxlength, pattern, flags }: t.TypeOf<typeof stringFacet>
 ): boolean {
 	let valid = true
 
@@ -287,8 +278,8 @@ function validateStringFacets(
 }
 
 function validateValueSet(
-	node: RDF.Term,
-	{ values }: TypeOf<typeof valueSet>
+	node: Term,
+	{ values }: t.TypeOf<typeof valueSet>
 ): boolean {
 	const { value } = node
 	return values.some((v) => {
@@ -367,7 +358,7 @@ const languageStem = (
 }
 
 export default function nodeSatisfies(
-	node: RDF.Term,
+	node: Term,
 	constraint: ShExParser.NodeConstraint
 ): boolean {
 	if (iriNodeKind.is(constraint)) {
@@ -396,11 +387,11 @@ export default function nodeSatisfies(
 			validateNumericFacets(node, constraint)
 		)
 	} else {
-		const numeric = exact(numericFacet).decode(constraint)
+		const numeric = t.exact(numericFacet).decode(constraint)
 		if (numeric._tag === "Right" && Object.keys(numeric).length > 0) {
 			return validateNumericFacets(node, numeric.right)
 		}
-		const string = exact(stringFacet).decode(constraint)
+		const string = t.exact(stringFacet).decode(constraint)
 		if (string._tag === "Right" && Object.keys(string).length > 0) {
 			return validateStringFacets(node.value, string.right)
 		}

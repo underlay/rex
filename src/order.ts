@@ -1,4 +1,4 @@
-import * as RDF from "rdf-js"
+import { Term, D } from "n3.ts"
 import { rex, xsd, defaultSort } from "./vocab.js"
 import {
 	encodeFloat,
@@ -8,6 +8,7 @@ import {
 	encodeInteger,
 	integerDatatype,
 } from "./satisfies.js"
+
 import {
 	TripleConstraint,
 	sortLexicographic,
@@ -22,9 +23,9 @@ import {
 	booleanDatatype,
 } from "./schema.js"
 
-import { TypeOf } from "io-ts/es6/index.js"
+import t from "./io.js"
 
-export type Order = (a: RDF.Term, b: RDF.Term) => boolean
+export type Order = (a: Term<D>, b: Term<D>) => boolean
 
 const numericInteger = {
 	[rex.greatest]: (
@@ -71,7 +72,7 @@ const numericFloat = {
 }
 
 function getNumericOrder<T extends numericDatatype>(
-	sort: TypeOf<typeof numeric>,
+	sort: t.TypeOf<typeof numeric>,
 	datatype: T
 ): Order {
 	if (datatype === xsd.decimal) {
@@ -108,11 +109,9 @@ const boolean = {
 }
 
 const lexicographic = {
-	[rex.first]: ({ value: a }: RDF.Term, { value: b }: RDF.Term) => a < b,
-	[rex.last]: ({ value: a }: RDF.Term, { value: b }: RDF.Term) => b < a,
+	[rex.first]: ({ value: a }: Term, { value: b }: Term) => a < b,
+	[rex.last]: ({ value: a }: Term, { value: b }: Term) => b < a,
 }
-
-;(window as any).lex = lexicographic
 
 export function getLexicographicOrder(
 	tripleConstraint: TripleConstraint & sortLexicographic

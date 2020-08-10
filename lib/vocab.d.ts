@@ -38,7 +38,6 @@ export declare const xsd: {
     unsignedShort: "http://www.w3.org/2001/XMLSchema#unsignedShort";
     unsignedByte: "http://www.w3.org/2001/XMLSchema#unsignedByte";
 };
-export declare const rdfTypeNode: import("n3").NamedNode;
 export declare const rdf: {
     type: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
     langString: "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";

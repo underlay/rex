@@ -2,7 +2,7 @@ import jsonld from "jsonld"
 import { canonize } from "rdf-canonize"
 import raw from "ipld-raw"
 import { Buffer } from "buffer"
-import { StreamParser } from "n3"
+import { Parse } from "n3.ts"
 
 const canonizeOptions = {
 	algorithm: "URDNA2015",
@@ -35,19 +35,13 @@ export async function parseJsonLd(input, documentLoader = null) {
 }
 
 export async function parseNQuads(input) {
-	const dataset = await new Promise((resolve, reject) => {
-		const quads = []
-		new StreamParser({
-			format: "application/n-quads",
-			blankNodePrefix: "_:",
-		})
-			.on("data", (quad) => quads.push(quad.toJSON()))
-			.on("end", () => resolve(quads))
-			.on("error", (err) => reject(err))
-			.end(input)
-	})
-
-	const canonized = await canonize(dataset, canonizeOptions)
+	const dataset = []
+	for (const quad of Parse(input)) {
+		dataset.push(quad.toJSON())
+	}
+	const canonized = await canonize(dataset, canonizeOptions).catch((err) =>
+		console.error(err)
+	)
 	const cid = await raw.util.cid(Buffer.from(canonized))
 	return { dataset, cid: cid.toString() }
 }

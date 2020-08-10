@@ -1,14 +1,15 @@
 import React, { useState, useCallback, useEffect, useMemo } from "react"
 
-import { Store } from "n3"
+import { Store } from "n3.ts"
 import { Dataset } from "rdf-cytoscape"
 
 import { getCoproduct } from "../lib/pushout.js"
-import { materialize, getDataset } from "../lib/materialize.js"
+import { materialize, getQuads } from "../lib/materialize.js"
 
 import { parseJsonLd, parseNQuads } from "./parse.js"
 import Assertion from "./assertion.jsx"
 import Schema from "./schema.jsx"
+import Table from "./table.jsx"
 
 const graphHeight = 300
 
@@ -58,11 +59,11 @@ export default function Example(props) {
 		return union.getGraphs(null, null, null)
 	}, [union])
 
-	const tables = useMemo(() => {
+	const [headers, tables] = useMemo(() => {
 		if (schema !== null && union !== null && union.size > 0) {
 			return materialize(schema, union)
 		}
-		return null
+		return [null, null]
 	}, [schema, union])
 
 	const handleJsonLdUpload = useCallback(
@@ -153,7 +154,7 @@ export default function Example(props) {
 						className="union rdf-cytoscape"
 						style={{ height: graphHeight * unionGraphs.length }}
 					>
-						<Dataset store={union} focus={undefined} />
+						<Dataset dataset={union} focus={undefined} />
 					</div>
 				) : null}
 				<label className="upload">
@@ -202,7 +203,7 @@ export default function Example(props) {
 					) : tables === null ? (
 						<code>loading...</code>
 					) : (
-						<Result schema={schema} tables={tables} view={view} />
+						<Result tables={tables} headers={headers} view={view} />
 					)}
 				</div>
 			</section>
@@ -210,27 +211,37 @@ export default function Example(props) {
 	)
 }
 
-function Result({ schema, tables, view }) {
+function Result({ headers, tables, view }) {
 	const store = useMemo(() => {
 		if (view === "graph") {
-			const dataset = getDataset(schema, tables)
-			return new Store(dataset)
+			const quads = []
+			for (const [id, table] of tables) {
+				for (const quad of getQuads(table, headers.get(id))) {
+					quads.push(quad)
+				}
+			}
+			return new Store(quads)
 		}
 		return null
-	}, [schema, tables, view])
+	}, [tables, view])
 
 	if (view === "graph") {
-		return <Dataset store={store} focus={undefined} />
+		return <Dataset dataset={store} focus={undefined} />
 	} else if (view === "table") {
 		return (
 			<React.Fragment>
 				{Array.from(tables).map(([shape, table], i) =>
 					i === 0 ? (
-						<Table key={shape} shape={shape} table={table} />
+						<Table
+							key={shape}
+							shape={shape}
+							table={table}
+							header={headers.get(shape)}
+						/>
 					) : (
 						<React.Fragment key={shape}>
 							<hr />
-							<Table shape={shape} table={table} />
+							<Table shape={shape} table={table} header={headers.get(shape)} />
 						</React.Fragment>
 					)
 				)}
@@ -239,43 +250,4 @@ function Result({ schema, tables, view }) {
 	} else {
 		return null
 	}
-}
-
-function Table({ shape, table }) {
-	const rows = Array.from(table)
-	if (rows.length === 0) {
-		return (
-			<section className="table">
-				<h3>{shape}</h3>
-				<pre>Table is empty</pre>
-			</section>
-		)
-	}
-	const [[_, first]] = rows
-	const header = Array.from(first.keys())
-	return (
-		<section className="table">
-			<h3>{shape}</h3>
-			<div>
-				<table>
-					<tbody>
-						<tr key="header">
-							<th key="id"></th>
-							{header.map((property) => (
-								<th key={property}>{property}</th>
-							))}
-						</tr>
-						{rows.map(([id, properties]) => (
-							<tr key={id}>
-								<td key="id">_:{id}</td>
-								{Array.from(properties).map(([predicate, values]) => (
-									<td key={predicate}>{Array.from(values).join("\n")}</td>
-								))}
-							</tr>
-						))}
-					</tbody>
-				</table>
-			</div>
-		</section>
-	)
 }

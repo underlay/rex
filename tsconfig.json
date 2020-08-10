@@ -9,7 +9,6 @@
 		"declaration": true,
 		"alwaysStrict": true,
 		"moduleResolution": "node",
-		"allowSyntheticDefaultImports": true,
 		"esModuleInterop": true
 	}
 }

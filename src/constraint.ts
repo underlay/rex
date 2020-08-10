@@ -1,63 +1,52 @@
-import {
-	Type,
-	TypeOf,
-	type,
-	partial,
-	string,
-	number,
-	literal,
-	array,
-	union,
-	intersection,
-} from "io-ts/es6/index.js"
+import t from "./io.js"
 
-import ShExParser from "@shexjs/parser"
+import * as ShExParser from "@shexjs/parser"
 
-export const ObjectLiteral = intersection([
-	type({ value: string }),
-	partial({ language: string, type: string }),
+export const ObjectLiteral = t.intersection([
+	t.type({ value: t.string }),
+	t.partial({ language: t.string, type: t.string }),
 ])
 
-export const objectValue = union([string, ObjectLiteral])
+export const objectValue = t.union([t.string, ObjectLiteral])
 
-export const Wildcard = type({ type: literal("Wildcard") })
+export const Wildcard = t.type({ type: t.literal("Wildcard") })
 
-export const IriStem = type({ type: literal("IriStem"), stem: string })
+export const IriStem = t.type({ type: t.literal("IriStem"), stem: t.string })
 
-export const IriStemRange = type({
-	type: literal("IriStemRange"),
-	stem: union([string, Wildcard]),
-	exclusions: array(union([string, IriStem])),
+export const IriStemRange = t.type({
+	type: t.literal("IriStemRange"),
+	stem: t.union([t.string, Wildcard]),
+	exclusions: t.array(t.union([t.string, IriStem])),
 })
 
-export const LiteralStem = type({
-	type: literal("LiteralStem"),
-	stem: string,
+export const LiteralStem = t.type({
+	type: t.literal("LiteralStem"),
+	stem: t.string,
 })
 
-export const LiteralStemRange = type({
-	type: literal("LiteralStemRange"),
-	stem: union([string, Wildcard]),
-	exclusions: array(union([string, LiteralStem])),
+export const LiteralStemRange = t.type({
+	type: t.literal("LiteralStemRange"),
+	stem: t.union([t.string, Wildcard]),
+	exclusions: t.array(t.union([t.string, LiteralStem])),
 })
 
-export const Language = type({
-	type: literal("Language"),
-	languageTag: string,
+export const Language = t.type({
+	type: t.literal("Language"),
+	languageTag: t.string,
 })
 
-export const LanguageStem = type({
-	type: literal("LanguageStem"),
-	stem: string,
+export const LanguageStem = t.type({
+	type: t.literal("LanguageStem"),
+	stem: t.string,
 })
 
-export const LanguageStemRange = type({
-	type: literal("LanguageStemRange"),
-	stem: union([string, Wildcard]),
-	exclusions: array(union([string, LanguageStem])),
+export const LanguageStemRange = t.type({
+	type: t.literal("LanguageStemRange"),
+	stem: t.union([t.string, Wildcard]),
+	exclusions: t.array(t.union([t.string, LanguageStem])),
 })
 
-export const valueSetValue = union([
+export const valueSetValue = t.union([
 	objectValue,
 	IriStem,
 	IriStemRange,
@@ -68,67 +57,70 @@ export const valueSetValue = union([
 	LanguageStemRange,
 ])
 
-export const lengthFacet = partial({ length: number })
+export const lengthFacet = t.partial({ length: t.number })
 
-export const lengthRangeFacet = partial({
-	minlength: number,
-	maxlength: number,
+export const lengthRangeFacet = t.partial({
+	minlength: t.number,
+	maxlength: t.number,
 })
 
-export const patternFacet = intersection([
-	partial({ pattern: string }),
-	partial({ flags: string }),
+export const patternFacet = t.intersection([
+	t.partial({ pattern: t.string }),
+	t.partial({ flags: t.string }),
 ])
 
-export const stringFacet = intersection([
+export const stringFacet = t.intersection([
 	lengthFacet,
 	lengthRangeFacet,
 	patternFacet,
 ])
 
-export const numericFacet = partial({
-	mininclusive: number,
-	minexclusive: number,
-	maxinclusive: number,
-	maxexclusive: number,
-	totaldigits: number,
-	fractiondigits: number,
+export const numericFacet = t.partial({
+	mininclusive: t.number,
+	minexclusive: t.number,
+	maxinclusive: t.number,
+	maxexclusive: t.number,
+	totaldigits: t.number,
+	fractiondigits: t.number,
 })
 
-export const xsFacet = intersection([stringFacet, numericFacet])
+export const xsFacet = t.intersection([stringFacet, numericFacet])
 
-export const iriNodeKind = intersection([
-	type({ type: literal("NodeConstraint"), nodeKind: literal("iri") }),
+export const iriNodeKind = t.intersection([
+	t.type({ type: t.literal("NodeConstraint"), nodeKind: t.literal("iri") }),
 	stringFacet,
 ])
 
-export const literalNodeKind = intersection([
-	type({ type: literal("NodeConstraint"), nodeKind: literal("literal") }),
+export const literalNodeKind = t.intersection([
+	t.type({ type: t.literal("NodeConstraint"), nodeKind: t.literal("literal") }),
 	xsFacet,
 ])
 
 export type dataTypeConstraint<T extends string> = {
 	type: "NodeConstraint"
 	datatype: T
-} & TypeOf<typeof xsFacet>
+} & t.TypeOf<typeof xsFacet>
 
 export const dataTypeConstraint = <T extends string>(
-	datatype: Type<T>
-): Type<dataTypeConstraint<T>> =>
-	intersection([type({ type: literal("NodeConstraint"), datatype }), xsFacet])
+	datatype: t.Type<T>
+): t.Type<dataTypeConstraint<T>> =>
+	t.intersection([
+		t.type({ type: t.literal("NodeConstraint"), datatype }),
+		xsFacet,
+	])
 
-export const dataType = dataTypeConstraint(string)
+export const dataType = dataTypeConstraint(t.string)
 
-export const valueSet = intersection([
-	type({ type: literal("NodeConstraint"), values: array(valueSetValue) }),
+export const valueSet = t.intersection([
+	t.type({ type: t.literal("NodeConstraint"), values: t.array(valueSetValue) }),
 	xsFacet,
 ])
 
-export const NodeConstraint: Type<ShExParser.NodeConstraint> = union([
+export const NodeConstraint: t.Type<ShExParser.NodeConstraint> = t.union([
 	iriNodeKind,
 	literalNodeKind,
 	dataType,
 	valueSet,
-	intersection([type({ type: literal("NodeConstraint") }), stringFacet]),
-	intersection([type({ type: literal("NodeConstraint") }), numericFacet]),
+	t.intersection([t.type({ type: t.literal("NodeConstraint") }), stringFacet]),
+	t.intersection([t.type({ type: t.literal("NodeConstraint") }), numericFacet]),
 ])

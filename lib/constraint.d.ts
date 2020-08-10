@@ -1,259 +1,259 @@
-import { Type, TypeOf } from "io-ts/es6/index.js";
-import ShExParser from "@shexjs/parser";
-export declare const ObjectLiteral: import("io-ts/es6").IntersectionC<[import("io-ts/es6").TypeC<{
-    value: import("io-ts/es6").StringC;
-}>, import("io-ts/es6").PartialC<{
-    language: import("io-ts/es6").StringC;
-    type: import("io-ts/es6").StringC;
+import t from "./io.js";
+import * as ShExParser from "@shexjs/parser";
+export declare const ObjectLiteral: t.IntersectionC<[t.TypeC<{
+    value: t.StringC;
+}>, t.PartialC<{
+    language: t.StringC;
+    type: t.StringC;
 }>]>;
-export declare const objectValue: import("io-ts/es6").UnionC<[import("io-ts/es6").StringC, import("io-ts/es6").IntersectionC<[import("io-ts/es6").TypeC<{
-    value: import("io-ts/es6").StringC;
-}>, import("io-ts/es6").PartialC<{
-    language: import("io-ts/es6").StringC;
-    type: import("io-ts/es6").StringC;
+export declare const objectValue: t.UnionC<[t.StringC, t.IntersectionC<[t.TypeC<{
+    value: t.StringC;
+}>, t.PartialC<{
+    language: t.StringC;
+    type: t.StringC;
 }>]>]>;
-export declare const Wildcard: import("io-ts/es6").TypeC<{
-    type: import("io-ts/es6").LiteralC<"Wildcard">;
+export declare const Wildcard: t.TypeC<{
+    type: t.LiteralC<"Wildcard">;
 }>;
-export declare const IriStem: import("io-ts/es6").TypeC<{
-    type: import("io-ts/es6").LiteralC<"IriStem">;
-    stem: import("io-ts/es6").StringC;
+export declare const IriStem: t.TypeC<{
+    type: t.LiteralC<"IriStem">;
+    stem: t.StringC;
 }>;
-export declare const IriStemRange: import("io-ts/es6").TypeC<{
-    type: import("io-ts/es6").LiteralC<"IriStemRange">;
-    stem: import("io-ts/es6").UnionC<[import("io-ts/es6").StringC, import("io-ts/es6").TypeC<{
-        type: import("io-ts/es6").LiteralC<"Wildcard">;
+export declare const IriStemRange: t.TypeC<{
+    type: t.LiteralC<"IriStemRange">;
+    stem: t.UnionC<[t.StringC, t.TypeC<{
+        type: t.LiteralC<"Wildcard">;
     }>]>;
-    exclusions: import("io-ts/es6").ArrayC<import("io-ts/es6").UnionC<[import("io-ts/es6").StringC, import("io-ts/es6").TypeC<{
-        type: import("io-ts/es6").LiteralC<"IriStem">;
-        stem: import("io-ts/es6").StringC;
+    exclusions: t.ArrayC<t.UnionC<[t.StringC, t.TypeC<{
+        type: t.LiteralC<"IriStem">;
+        stem: t.StringC;
     }>]>>;
 }>;
-export declare const LiteralStem: import("io-ts/es6").TypeC<{
-    type: import("io-ts/es6").LiteralC<"LiteralStem">;
-    stem: import("io-ts/es6").StringC;
+export declare const LiteralStem: t.TypeC<{
+    type: t.LiteralC<"LiteralStem">;
+    stem: t.StringC;
 }>;
-export declare const LiteralStemRange: import("io-ts/es6").TypeC<{
-    type: import("io-ts/es6").LiteralC<"LiteralStemRange">;
-    stem: import("io-ts/es6").UnionC<[import("io-ts/es6").StringC, import("io-ts/es6").TypeC<{
-        type: import("io-ts/es6").LiteralC<"Wildcard">;
+export declare const LiteralStemRange: t.TypeC<{
+    type: t.LiteralC<"LiteralStemRange">;
+    stem: t.UnionC<[t.StringC, t.TypeC<{
+        type: t.LiteralC<"Wildcard">;
     }>]>;
-    exclusions: import("io-ts/es6").ArrayC<import("io-ts/es6").UnionC<[import("io-ts/es6").StringC, import("io-ts/es6").TypeC<{
-        type: import("io-ts/es6").LiteralC<"LiteralStem">;
-        stem: import("io-ts/es6").StringC;
+    exclusions: t.ArrayC<t.UnionC<[t.StringC, t.TypeC<{
+        type: t.LiteralC<"LiteralStem">;
+        stem: t.StringC;
     }>]>>;
 }>;
-export declare const Language: import("io-ts/es6").TypeC<{
-    type: import("io-ts/es6").LiteralC<"Language">;
-    languageTag: import("io-ts/es6").StringC;
+export declare const Language: t.TypeC<{
+    type: t.LiteralC<"Language">;
+    languageTag: t.StringC;
 }>;
-export declare const LanguageStem: import("io-ts/es6").TypeC<{
-    type: import("io-ts/es6").LiteralC<"LanguageStem">;
-    stem: import("io-ts/es6").StringC;
+export declare const LanguageStem: t.TypeC<{
+    type: t.LiteralC<"LanguageStem">;
+    stem: t.StringC;
 }>;
-export declare const LanguageStemRange: import("io-ts/es6").TypeC<{
-    type: import("io-ts/es6").LiteralC<"LanguageStemRange">;
-    stem: import("io-ts/es6").UnionC<[import("io-ts/es6").StringC, import("io-ts/es6").TypeC<{
-        type: import("io-ts/es6").LiteralC<"Wildcard">;
+export declare const LanguageStemRange: t.TypeC<{
+    type: t.LiteralC<"LanguageStemRange">;
+    stem: t.UnionC<[t.StringC, t.TypeC<{
+        type: t.LiteralC<"Wildcard">;
     }>]>;
-    exclusions: import("io-ts/es6").ArrayC<import("io-ts/es6").UnionC<[import("io-ts/es6").StringC, import("io-ts/es6").TypeC<{
-        type: import("io-ts/es6").LiteralC<"LanguageStem">;
-        stem: import("io-ts/es6").StringC;
+    exclusions: t.ArrayC<t.UnionC<[t.StringC, t.TypeC<{
+        type: t.LiteralC<"LanguageStem">;
+        stem: t.StringC;
     }>]>>;
 }>;
-export declare const valueSetValue: import("io-ts/es6").UnionC<[import("io-ts/es6").UnionC<[import("io-ts/es6").StringC, import("io-ts/es6").IntersectionC<[import("io-ts/es6").TypeC<{
-    value: import("io-ts/es6").StringC;
-}>, import("io-ts/es6").PartialC<{
-    language: import("io-ts/es6").StringC;
-    type: import("io-ts/es6").StringC;
-}>]>]>, import("io-ts/es6").TypeC<{
-    type: import("io-ts/es6").LiteralC<"IriStem">;
-    stem: import("io-ts/es6").StringC;
-}>, import("io-ts/es6").TypeC<{
-    type: import("io-ts/es6").LiteralC<"IriStemRange">;
-    stem: import("io-ts/es6").UnionC<[import("io-ts/es6").StringC, import("io-ts/es6").TypeC<{
-        type: import("io-ts/es6").LiteralC<"Wildcard">;
+export declare const valueSetValue: t.UnionC<[t.UnionC<[t.StringC, t.IntersectionC<[t.TypeC<{
+    value: t.StringC;
+}>, t.PartialC<{
+    language: t.StringC;
+    type: t.StringC;
+}>]>]>, t.TypeC<{
+    type: t.LiteralC<"IriStem">;
+    stem: t.StringC;
+}>, t.TypeC<{
+    type: t.LiteralC<"IriStemRange">;
+    stem: t.UnionC<[t.StringC, t.TypeC<{
+        type: t.LiteralC<"Wildcard">;
     }>]>;
-    exclusions: import("io-ts/es6").ArrayC<import("io-ts/es6").UnionC<[import("io-ts/es6").StringC, import("io-ts/es6").TypeC<{
-        type: import("io-ts/es6").LiteralC<"IriStem">;
-        stem: import("io-ts/es6").StringC;
+    exclusions: t.ArrayC<t.UnionC<[t.StringC, t.TypeC<{
+        type: t.LiteralC<"IriStem">;
+        stem: t.StringC;
     }>]>>;
-}>, import("io-ts/es6").TypeC<{
-    type: import("io-ts/es6").LiteralC<"LiteralStem">;
-    stem: import("io-ts/es6").StringC;
-}>, import("io-ts/es6").TypeC<{
-    type: import("io-ts/es6").LiteralC<"LiteralStemRange">;
-    stem: import("io-ts/es6").UnionC<[import("io-ts/es6").StringC, import("io-ts/es6").TypeC<{
-        type: import("io-ts/es6").LiteralC<"Wildcard">;
+}>, t.TypeC<{
+    type: t.LiteralC<"LiteralStem">;
+    stem: t.StringC;
+}>, t.TypeC<{
+    type: t.LiteralC<"LiteralStemRange">;
+    stem: t.UnionC<[t.StringC, t.TypeC<{
+        type: t.LiteralC<"Wildcard">;
     }>]>;
-    exclusions: import("io-ts/es6").ArrayC<import("io-ts/es6").UnionC<[import("io-ts/es6").StringC, import("io-ts/es6").TypeC<{
-        type: import("io-ts/es6").LiteralC<"LiteralStem">;
-        stem: import("io-ts/es6").StringC;
+    exclusions: t.ArrayC<t.UnionC<[t.StringC, t.TypeC<{
+        type: t.LiteralC<"LiteralStem">;
+        stem: t.StringC;
     }>]>>;
-}>, import("io-ts/es6").TypeC<{
-    type: import("io-ts/es6").LiteralC<"Language">;
-    languageTag: import("io-ts/es6").StringC;
-}>, import("io-ts/es6").TypeC<{
-    type: import("io-ts/es6").LiteralC<"LanguageStem">;
-    stem: import("io-ts/es6").StringC;
-}>, import("io-ts/es6").TypeC<{
-    type: import("io-ts/es6").LiteralC<"LanguageStemRange">;
-    stem: import("io-ts/es6").UnionC<[import("io-ts/es6").StringC, import("io-ts/es6").TypeC<{
-        type: import("io-ts/es6").LiteralC<"Wildcard">;
+}>, t.TypeC<{
+    type: t.LiteralC<"Language">;
+    languageTag: t.StringC;
+}>, t.TypeC<{
+    type: t.LiteralC<"LanguageStem">;
+    stem: t.StringC;
+}>, t.TypeC<{
+    type: t.LiteralC<"LanguageStemRange">;
+    stem: t.UnionC<[t.StringC, t.TypeC<{
+        type: t.LiteralC<"Wildcard">;
     }>]>;
-    exclusions: import("io-ts/es6").ArrayC<import("io-ts/es6").UnionC<[import("io-ts/es6").StringC, import("io-ts/es6").TypeC<{
-        type: import("io-ts/es6").LiteralC<"LanguageStem">;
-        stem: import("io-ts/es6").StringC;
+    exclusions: t.ArrayC<t.UnionC<[t.StringC, t.TypeC<{
+        type: t.LiteralC<"LanguageStem">;
+        stem: t.StringC;
     }>]>>;
 }>]>;
-export declare const lengthFacet: import("io-ts/es6").PartialC<{
-    length: import("io-ts/es6").NumberC;
+export declare const lengthFacet: t.PartialC<{
+    length: t.NumberC;
 }>;
-export declare const lengthRangeFacet: import("io-ts/es6").PartialC<{
-    minlength: import("io-ts/es6").NumberC;
-    maxlength: import("io-ts/es6").NumberC;
+export declare const lengthRangeFacet: t.PartialC<{
+    minlength: t.NumberC;
+    maxlength: t.NumberC;
 }>;
-export declare const patternFacet: import("io-ts/es6").IntersectionC<[import("io-ts/es6").PartialC<{
-    pattern: import("io-ts/es6").StringC;
-}>, import("io-ts/es6").PartialC<{
-    flags: import("io-ts/es6").StringC;
+export declare const patternFacet: t.IntersectionC<[t.PartialC<{
+    pattern: t.StringC;
+}>, t.PartialC<{
+    flags: t.StringC;
 }>]>;
-export declare const stringFacet: import("io-ts/es6").IntersectionC<[import("io-ts/es6").PartialC<{
-    length: import("io-ts/es6").NumberC;
-}>, import("io-ts/es6").PartialC<{
-    minlength: import("io-ts/es6").NumberC;
-    maxlength: import("io-ts/es6").NumberC;
-}>, import("io-ts/es6").IntersectionC<[import("io-ts/es6").PartialC<{
-    pattern: import("io-ts/es6").StringC;
-}>, import("io-ts/es6").PartialC<{
-    flags: import("io-ts/es6").StringC;
+export declare const stringFacet: t.IntersectionC<[t.PartialC<{
+    length: t.NumberC;
+}>, t.PartialC<{
+    minlength: t.NumberC;
+    maxlength: t.NumberC;
+}>, t.IntersectionC<[t.PartialC<{
+    pattern: t.StringC;
+}>, t.PartialC<{
+    flags: t.StringC;
 }>]>]>;
-export declare const numericFacet: import("io-ts/es6").PartialC<{
-    mininclusive: import("io-ts/es6").NumberC;
-    minexclusive: import("io-ts/es6").NumberC;
-    maxinclusive: import("io-ts/es6").NumberC;
-    maxexclusive: import("io-ts/es6").NumberC;
-    totaldigits: import("io-ts/es6").NumberC;
-    fractiondigits: import("io-ts/es6").NumberC;
+export declare const numericFacet: t.PartialC<{
+    mininclusive: t.NumberC;
+    minexclusive: t.NumberC;
+    maxinclusive: t.NumberC;
+    maxexclusive: t.NumberC;
+    totaldigits: t.NumberC;
+    fractiondigits: t.NumberC;
 }>;
-export declare const xsFacet: import("io-ts/es6").IntersectionC<[import("io-ts/es6").IntersectionC<[import("io-ts/es6").PartialC<{
-    length: import("io-ts/es6").NumberC;
-}>, import("io-ts/es6").PartialC<{
-    minlength: import("io-ts/es6").NumberC;
-    maxlength: import("io-ts/es6").NumberC;
-}>, import("io-ts/es6").IntersectionC<[import("io-ts/es6").PartialC<{
-    pattern: import("io-ts/es6").StringC;
-}>, import("io-ts/es6").PartialC<{
-    flags: import("io-ts/es6").StringC;
-}>]>]>, import("io-ts/es6").PartialC<{
-    mininclusive: import("io-ts/es6").NumberC;
-    minexclusive: import("io-ts/es6").NumberC;
-    maxinclusive: import("io-ts/es6").NumberC;
-    maxexclusive: import("io-ts/es6").NumberC;
-    totaldigits: import("io-ts/es6").NumberC;
-    fractiondigits: import("io-ts/es6").NumberC;
+export declare const xsFacet: t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+    length: t.NumberC;
+}>, t.PartialC<{
+    minlength: t.NumberC;
+    maxlength: t.NumberC;
+}>, t.IntersectionC<[t.PartialC<{
+    pattern: t.StringC;
+}>, t.PartialC<{
+    flags: t.StringC;
+}>]>]>, t.PartialC<{
+    mininclusive: t.NumberC;
+    minexclusive: t.NumberC;
+    maxinclusive: t.NumberC;
+    maxexclusive: t.NumberC;
+    totaldigits: t.NumberC;
+    fractiondigits: t.NumberC;
 }>]>;
-export declare const iriNodeKind: import("io-ts/es6").IntersectionC<[import("io-ts/es6").TypeC<{
-    type: import("io-ts/es6").LiteralC<"NodeConstraint">;
-    nodeKind: import("io-ts/es6").LiteralC<"iri">;
-}>, import("io-ts/es6").IntersectionC<[import("io-ts/es6").PartialC<{
-    length: import("io-ts/es6").NumberC;
-}>, import("io-ts/es6").PartialC<{
-    minlength: import("io-ts/es6").NumberC;
-    maxlength: import("io-ts/es6").NumberC;
-}>, import("io-ts/es6").IntersectionC<[import("io-ts/es6").PartialC<{
-    pattern: import("io-ts/es6").StringC;
-}>, import("io-ts/es6").PartialC<{
-    flags: import("io-ts/es6").StringC;
+export declare const iriNodeKind: t.IntersectionC<[t.TypeC<{
+    type: t.LiteralC<"NodeConstraint">;
+    nodeKind: t.LiteralC<"iri">;
+}>, t.IntersectionC<[t.PartialC<{
+    length: t.NumberC;
+}>, t.PartialC<{
+    minlength: t.NumberC;
+    maxlength: t.NumberC;
+}>, t.IntersectionC<[t.PartialC<{
+    pattern: t.StringC;
+}>, t.PartialC<{
+    flags: t.StringC;
 }>]>]>]>;
-export declare const literalNodeKind: import("io-ts/es6").IntersectionC<[import("io-ts/es6").TypeC<{
-    type: import("io-ts/es6").LiteralC<"NodeConstraint">;
-    nodeKind: import("io-ts/es6").LiteralC<"literal">;
-}>, import("io-ts/es6").IntersectionC<[import("io-ts/es6").IntersectionC<[import("io-ts/es6").PartialC<{
-    length: import("io-ts/es6").NumberC;
-}>, import("io-ts/es6").PartialC<{
-    minlength: import("io-ts/es6").NumberC;
-    maxlength: import("io-ts/es6").NumberC;
-}>, import("io-ts/es6").IntersectionC<[import("io-ts/es6").PartialC<{
-    pattern: import("io-ts/es6").StringC;
-}>, import("io-ts/es6").PartialC<{
-    flags: import("io-ts/es6").StringC;
-}>]>]>, import("io-ts/es6").PartialC<{
-    mininclusive: import("io-ts/es6").NumberC;
-    minexclusive: import("io-ts/es6").NumberC;
-    maxinclusive: import("io-ts/es6").NumberC;
-    maxexclusive: import("io-ts/es6").NumberC;
-    totaldigits: import("io-ts/es6").NumberC;
-    fractiondigits: import("io-ts/es6").NumberC;
+export declare const literalNodeKind: t.IntersectionC<[t.TypeC<{
+    type: t.LiteralC<"NodeConstraint">;
+    nodeKind: t.LiteralC<"literal">;
+}>, t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+    length: t.NumberC;
+}>, t.PartialC<{
+    minlength: t.NumberC;
+    maxlength: t.NumberC;
+}>, t.IntersectionC<[t.PartialC<{
+    pattern: t.StringC;
+}>, t.PartialC<{
+    flags: t.StringC;
+}>]>]>, t.PartialC<{
+    mininclusive: t.NumberC;
+    minexclusive: t.NumberC;
+    maxinclusive: t.NumberC;
+    maxexclusive: t.NumberC;
+    totaldigits: t.NumberC;
+    fractiondigits: t.NumberC;
 }>]>]>;
 export declare type dataTypeConstraint<T extends string> = {
     type: "NodeConstraint";
     datatype: T;
-} & TypeOf<typeof xsFacet>;
-export declare const dataTypeConstraint: <T extends string>(datatype: Type<T, T, unknown>) => Type<dataTypeConstraint<T>, dataTypeConstraint<T>, unknown>;
-export declare const dataType: Type<dataTypeConstraint<string>, dataTypeConstraint<string>, unknown>;
-export declare const valueSet: import("io-ts/es6").IntersectionC<[import("io-ts/es6").TypeC<{
-    type: import("io-ts/es6").LiteralC<"NodeConstraint">;
-    values: import("io-ts/es6").ArrayC<import("io-ts/es6").UnionC<[import("io-ts/es6").UnionC<[import("io-ts/es6").StringC, import("io-ts/es6").IntersectionC<[import("io-ts/es6").TypeC<{
-        value: import("io-ts/es6").StringC;
-    }>, import("io-ts/es6").PartialC<{
-        language: import("io-ts/es6").StringC;
-        type: import("io-ts/es6").StringC;
-    }>]>]>, import("io-ts/es6").TypeC<{
-        type: import("io-ts/es6").LiteralC<"IriStem">;
-        stem: import("io-ts/es6").StringC;
-    }>, import("io-ts/es6").TypeC<{
-        type: import("io-ts/es6").LiteralC<"IriStemRange">;
-        stem: import("io-ts/es6").UnionC<[import("io-ts/es6").StringC, import("io-ts/es6").TypeC<{
-            type: import("io-ts/es6").LiteralC<"Wildcard">;
+} & t.TypeOf<typeof xsFacet>;
+export declare const dataTypeConstraint: <T extends string>(datatype: t.Type<T, T, unknown>) => t.Type<dataTypeConstraint<T>, dataTypeConstraint<T>, unknown>;
+export declare const dataType: t.Type<dataTypeConstraint<string>, dataTypeConstraint<string>, unknown>;
+export declare const valueSet: t.IntersectionC<[t.TypeC<{
+    type: t.LiteralC<"NodeConstraint">;
+    values: t.ArrayC<t.UnionC<[t.UnionC<[t.StringC, t.IntersectionC<[t.TypeC<{
+        value: t.StringC;
+    }>, t.PartialC<{
+        language: t.StringC;
+        type: t.StringC;
+    }>]>]>, t.TypeC<{
+        type: t.LiteralC<"IriStem">;
+        stem: t.StringC;
+    }>, t.TypeC<{
+        type: t.LiteralC<"IriStemRange">;
+        stem: t.UnionC<[t.StringC, t.TypeC<{
+            type: t.LiteralC<"Wildcard">;
         }>]>;
-        exclusions: import("io-ts/es6").ArrayC<import("io-ts/es6").UnionC<[import("io-ts/es6").StringC, import("io-ts/es6").TypeC<{
-            type: import("io-ts/es6").LiteralC<"IriStem">;
-            stem: import("io-ts/es6").StringC;
+        exclusions: t.ArrayC<t.UnionC<[t.StringC, t.TypeC<{
+            type: t.LiteralC<"IriStem">;
+            stem: t.StringC;
         }>]>>;
-    }>, import("io-ts/es6").TypeC<{
-        type: import("io-ts/es6").LiteralC<"LiteralStem">;
-        stem: import("io-ts/es6").StringC;
-    }>, import("io-ts/es6").TypeC<{
-        type: import("io-ts/es6").LiteralC<"LiteralStemRange">;
-        stem: import("io-ts/es6").UnionC<[import("io-ts/es6").StringC, import("io-ts/es6").TypeC<{
-            type: import("io-ts/es6").LiteralC<"Wildcard">;
+    }>, t.TypeC<{
+        type: t.LiteralC<"LiteralStem">;
+        stem: t.StringC;
+    }>, t.TypeC<{
+        type: t.LiteralC<"LiteralStemRange">;
+        stem: t.UnionC<[t.StringC, t.TypeC<{
+            type: t.LiteralC<"Wildcard">;
         }>]>;
-        exclusions: import("io-ts/es6").ArrayC<import("io-ts/es6").UnionC<[import("io-ts/es6").StringC, import("io-ts/es6").TypeC<{
-            type: import("io-ts/es6").LiteralC<"LiteralStem">;
-            stem: import("io-ts/es6").StringC;
+        exclusions: t.ArrayC<t.UnionC<[t.StringC, t.TypeC<{
+            type: t.LiteralC<"LiteralStem">;
+            stem: t.StringC;
         }>]>>;
-    }>, import("io-ts/es6").TypeC<{
-        type: import("io-ts/es6").LiteralC<"Language">;
-        languageTag: import("io-ts/es6").StringC;
-    }>, import("io-ts/es6").TypeC<{
-        type: import("io-ts/es6").LiteralC<"LanguageStem">;
-        stem: import("io-ts/es6").StringC;
-    }>, import("io-ts/es6").TypeC<{
-        type: import("io-ts/es6").LiteralC<"LanguageStemRange">;
-        stem: import("io-ts/es6").UnionC<[import("io-ts/es6").StringC, import("io-ts/es6").TypeC<{
-            type: import("io-ts/es6").LiteralC<"Wildcard">;
+    }>, t.TypeC<{
+        type: t.LiteralC<"Language">;
+        languageTag: t.StringC;
+    }>, t.TypeC<{
+        type: t.LiteralC<"LanguageStem">;
+        stem: t.StringC;
+    }>, t.TypeC<{
+        type: t.LiteralC<"LanguageStemRange">;
+        stem: t.UnionC<[t.StringC, t.TypeC<{
+            type: t.LiteralC<"Wildcard">;
         }>]>;
-        exclusions: import("io-ts/es6").ArrayC<import("io-ts/es6").UnionC<[import("io-ts/es6").StringC, import("io-ts/es6").TypeC<{
-            type: import("io-ts/es6").LiteralC<"LanguageStem">;
-            stem: import("io-ts/es6").StringC;
+        exclusions: t.ArrayC<t.UnionC<[t.StringC, t.TypeC<{
+            type: t.LiteralC<"LanguageStem">;
+            stem: t.StringC;
         }>]>>;
     }>]>>;
-}>, import("io-ts/es6").IntersectionC<[import("io-ts/es6").IntersectionC<[import("io-ts/es6").PartialC<{
-    length: import("io-ts/es6").NumberC;
-}>, import("io-ts/es6").PartialC<{
-    minlength: import("io-ts/es6").NumberC;
-    maxlength: import("io-ts/es6").NumberC;
-}>, import("io-ts/es6").IntersectionC<[import("io-ts/es6").PartialC<{
-    pattern: import("io-ts/es6").StringC;
-}>, import("io-ts/es6").PartialC<{
-    flags: import("io-ts/es6").StringC;
-}>]>]>, import("io-ts/es6").PartialC<{
-    mininclusive: import("io-ts/es6").NumberC;
-    minexclusive: import("io-ts/es6").NumberC;
-    maxinclusive: import("io-ts/es6").NumberC;
-    maxexclusive: import("io-ts/es6").NumberC;
-    totaldigits: import("io-ts/es6").NumberC;
-    fractiondigits: import("io-ts/es6").NumberC;
+}>, t.IntersectionC<[t.IntersectionC<[t.PartialC<{
+    length: t.NumberC;
+}>, t.PartialC<{
+    minlength: t.NumberC;
+    maxlength: t.NumberC;
+}>, t.IntersectionC<[t.PartialC<{
+    pattern: t.StringC;
+}>, t.PartialC<{
+    flags: t.StringC;
+}>]>]>, t.PartialC<{
+    mininclusive: t.NumberC;
+    minexclusive: t.NumberC;
+    maxinclusive: t.NumberC;
+    maxexclusive: t.NumberC;
+    totaldigits: t.NumberC;
+    fractiondigits: t.NumberC;
 }>]>]>;
-export declare const NodeConstraint: Type<ShExParser.NodeConstraint>;
+export declare const NodeConstraint: t.Type<ShExParser.NodeConstraint>;

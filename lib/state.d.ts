@@ -1,6 +1,6 @@
-import { Store } from "n3";
-import { TypeOf } from "io-ts/es6/index.js";
-import { Schema } from "./schema.js";
+import t from "./io.js";
+import { Store } from "n3.ts";
+import { Schema, AnnotatedTripleConstraint } from "./schema.js";
 import { Order } from "./order.js";
 export declare type Instance = {
     values: Map<string, Set<string>>;
@@ -8,22 +8,21 @@ export declare type Instance = {
     min: number;
     max: number;
 };
-export declare type Instances = Map<string, Instance[]>;
 export declare type Entry = [string, string, number, string];
 export declare type State = Readonly<{
     references: Map<string, Entry[]>;
     metaReferences: Map<string, Entry[]>;
-    types: TypeMap;
-    tables: Map<string, Instances>;
+    shapes: ShapeMap;
+    instances: Map<string, Map<string, Instance[]>>;
     coproduct: Store;
     components: Map<string, string>;
     inverse: Map<string, Set<string>>;
     pushout: Store;
 }>;
-declare type TypeMap = Map<string, Readonly<{
-    type: string;
-    shapeExpr: TypeOf<typeof Schema>["shapes"][0];
+export declare type Shape = {
     key?: string;
-}>>;
-export declare function getTypeMap(schema: TypeOf<typeof Schema>): TypeMap;
-export {};
+    expressions: AnnotatedTripleConstraint[];
+};
+export declare type ShapeMap = Map<string, Readonly<Shape>>;
+export declare function getShapeMap(schema: t.TypeOf<typeof Schema>): ShapeMap;
+export declare function getState(schema: t.TypeOf<typeof Schema>, coproduct: Store): State;

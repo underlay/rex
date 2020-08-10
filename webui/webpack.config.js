@@ -4,7 +4,7 @@ module.exports = {
 	devtool: "source-map",
 
 	entry: {
-		index: ["babel-polyfill", __dirname + "/index.jsx"],
+		index: __dirname + "/index.jsx",
 	},
 
 	output: {
@@ -37,12 +37,10 @@ module.exports = {
 			},
 			{
 				test: /\.jsx?$/,
-				exclude: /node_modules/,
-				use: {
-					loader: "babel-loader",
-					options: {
-						presets: ["@babel/preset-env"],
-					},
+				exclude: /node_modules\/[^(n3\.ts)]/,
+				loader: "babel-loader",
+				options: {
+					presets: ["@babel/preset-react"],
 				},
 			},
 		],

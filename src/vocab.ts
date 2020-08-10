@@ -1,5 +1,3 @@
-import { DataFactory } from "n3"
-
 const rexIn = "http://underlay.org/ns/rex#in",
 	rexKey = "http://underlay.org/ns/rex#key",
 	rexWith = "http://underlay.org/ns/rex#with",
@@ -88,8 +86,6 @@ export const xsd = {
 
 const rdfType = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
 	rdfLangString = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"
-
-export const rdfTypeNode = DataFactory.namedNode(rdfType)
 
 export const rdf = {
 	type: rdfType as typeof rdfType,

@@ -1,10 +1,18 @@
-import * as RDF from "rdf-js"
-import { DataFactory, Store } from "n3"
-import { TypeOf } from "io-ts/es6/index.js"
+import t from "./io.js"
+
+import {
+	Store,
+	Quad,
+	NamedNode,
+	BlankNode,
+	Object,
+	Term,
+	Subject,
+	D,
+} from "n3.ts"
 
 import {
 	Schema,
-	getExpressions,
 	AnnotatedTripleConstraint,
 	isReferenceAnnotation,
 	sortReference,
@@ -14,52 +22,28 @@ import {
 	isDatatypeAnnotation,
 	shapeExpr,
 } from "./schema.js"
-import { State, Entry, Instances, getTypeMap, Instance } from "./state.js"
-import { rdfTypeNode } from "./vocab.js"
+import { State, Entry, Instance, getState, Shape } from "./state.js"
 
 import nodeSatisfies from "./satisfies.js"
 import { toId, fromId, getRange, preImage, image } from "./utils.js"
 import { getTypeOrder, getOrder, Order } from "./order.js"
-import { getCospan } from "./pushout.js"
 import { collect } from "./collect.js"
+import { Table } from "./table.js"
 
-export type Table = Map<string, Map<string, Set<string>>>
 export function materialize(
-	s: TypeOf<typeof Schema>,
+	schema: t.TypeOf<typeof Schema>,
 	coproduct: Store
-): Map<string, Table> {
-	const types = getTypeMap(s)
-	const state: State = Object.freeze(
-		Object.assign(
-			{
-				types,
-				tables: new Map(),
-				path: [],
-				references: new Map(),
-				metaReferences: new Map(),
-			},
-			getCospan(types, coproduct)
-		)
-	)
-
-	for (const shapeAnd of s.shapes) {
-		const [{}, product] = shapeAnd.shapeExprs
-		const [{ valueExpr }, ...expressions] = getExpressions(product)
-		const [type] = valueExpr.values
-		const subjects = state.pushout.getSubjects(
-			rdfTypeNode,
-			DataFactory.namedNode(type),
-			null
-		)
-
-		const instances: Instances = new Map()
-		for (const subject of subjects) {
+): [Map<string, string[]>, Map<string, Table>] {
+	const state = getState(schema, coproduct)
+	for (const [id, { expressions }] of state.shapes) {
+		const instanceMap: Map<string, Instance[]> = new Map()
+		for (const subject of state.pushout.subjects(null, null, null)) {
 			if (subject.termType !== "BlankNode") {
 				continue
 			}
-			const instance = instantiate(shapeAnd.id, subject, expressions, state)
+			const instance = instantiate(id, subject, expressions, state)
 			if (instance !== null) {
-				instances.set(subject.value, instance)
+				instanceMap.set(subject.value, instance)
 				for (const expression of expressions) {
 					const graph = getGraphReference(expression)
 					if (graph !== null) {
@@ -67,30 +51,29 @@ export function materialize(
 				}
 			}
 		}
-		state.tables.set(shapeAnd.id, instances)
+		state.instances.set(id, instanceMap)
 	}
 
-	for (const shapeAnd of s.shapes) {
-		const instances = state.tables.get(shapeAnd.id)!
-		const [{}, product] = shapeAnd.shapeExprs
-		const [{}, ...expressions] = getExpressions(product)
+	for (const [id, { expressions }] of state.shapes) {
+		const instanceMap = state.instances.get(id)!
 		for (const [i, expression] of expressions.entries()) {
 			if (typeof expression.valueExpr === "string") {
-				for (const [value, instance] of instances) {
-					const referenceTable = state.tables.get(expression.valueExpr)
-					if (referenceTable === undefined) {
+				for (const [value, instances] of instanceMap) {
+					const referenceMap = state.instances.get(expression.valueExpr)
+					if (referenceMap === undefined) {
 						throw new Error(`No reference table found: ${expression.valueExpr}`)
 					}
 
-					for (const objectId of instance[i].values.keys()) {
+					for (const objectId of instances[i].values.keys()) {
 						const { value: objectValue } = fromId(objectId)
-						if (!referenceTable.has(objectValue)) {
-							instance[i].values.delete(objectId)
+
+						if (!referenceMap.has(objectValue)) {
+							instances[i].values.delete(objectId)
 						}
 					}
 
-					if (instance[i].values.size < instance[i].min) {
-						handleDelete(shapeAnd.id, value, state)
+					if (instances[i].values.size < instances[i].min) {
+						handleDelete(id, value, state)
 					}
 				}
 			}
@@ -98,15 +81,15 @@ export function materialize(
 			const graph = getGraphReference(expression)
 
 			if (graph !== null) {
-				const graphTable = state.tables.get(graph)
-				if (graphTable === undefined) {
+				const graphMap = state.instances.get(graph)
+				if (graphMap === undefined) {
 					throw new Error(`No graph table found: ${graph}`)
 				}
 
-				for (const [subject, instance] of instances) {
+				for (const [subject, instance] of instanceMap) {
 					for (const [object, graphs] of instance[i].values) {
 						for (const name of graphs) {
-							if (!graphTable.has(getComponent(name, state))) {
+							if (!graphMap.has(getComponent(name, state))) {
 								graphs.delete(name)
 							}
 						}
@@ -115,7 +98,7 @@ export function materialize(
 						}
 					}
 					if (instance[i].values.size < instance[i].min) {
-						handleDelete(shapeAnd.id, subject, state)
+						handleDelete(id, subject, state)
 					}
 				}
 
@@ -123,11 +106,14 @@ export function materialize(
 					// Here we check to make sure that the *objects*
 					// for each graph referenced actually exist
 					const [{ object: meta }, { object: sort }] = expression.annotations
-					const {
-						shapeExprs: [{}, graphProduct],
-					} = s.shapes.find(({ id }) => graph === id)!
-					const [{}, ...graphExpressions] = getExpressions(graphProduct)
-					const index = graphExpressions.findIndex(
+					const graphShape = state.shapes.get(graph)
+					if (graphShape === undefined) {
+						throw new Error(`Could not find shape with id: ${graph}`)
+					}
+
+					const metaTerm = new NamedNode(meta)
+
+					const index = graphShape.expressions.findIndex(
 						({ predicate }) => predicate === meta
 					)
 
@@ -135,7 +121,7 @@ export function materialize(
 						throw new Error(`Could not find expression with predicate: ${meta}`)
 					}
 
-					const graphExpression = graphExpressions[index]
+					const graphExpression = graphShape.expressions[index]
 					const order = getOrder(
 						sort,
 						isDatatypeAnnotation(graphExpression)
@@ -143,10 +129,10 @@ export function materialize(
 							: null
 					)
 
-					for (const [subject, instance] of instances) {
-						const metaReferences: Map<string, RDF.Quad_Object> = new Map()
+					for (const [subject, instance] of instanceMap) {
+						const metaReferences: Map<string, Object<D>> = new Map()
 						for (const [object, graphs] of instance[i].values) {
-							let max: RDF.Quad_Object | null = null
+							let max: Object<D> | null = null
 
 							const graphNames: Set<string> = new Set()
 							for (const name of graphs) {
@@ -154,11 +140,11 @@ export function materialize(
 							}
 
 							for (const name of graphNames) {
-								const graphInstance = graphTable.get(name)!
+								const graphInstances = graphMap.get(name)!
 
-								for (const valueId of graphInstance[index].values.keys()) {
-									const term = fromId(valueId) as RDF.Quad_Object
-									const s = state.coproduct.getSubjects(meta, term, null)
+								for (const valueId of graphInstances[index].values.keys()) {
+									const term = fromId(valueId) as Object<D>
+									const s = state.coproduct.subjects(metaTerm, term, null)
 									for (const preSubject of s) {
 										if (
 											preSubject.termType === "BlankNode" &&
@@ -178,11 +164,11 @@ export function materialize(
 							} else {
 								instance[i].values.delete(object)
 								if (instance[i].values.size < instance[i].min) {
-									handleDelete(shapeAnd.id, subject, state)
+									handleDelete(id, subject, state)
 								}
 							}
 						}
-						instance[i].order = (a: RDF.Term, b: RDF.Term) => {
+						instance[i].order = (a: Term<D>, b: Term<D>) => {
 							const A = metaReferences.get(toId(a))!
 							const B = metaReferences.get(toId(b))!
 							return order(A, B)
@@ -195,53 +181,42 @@ export function materialize(
 
 	// Now state is complete, so we trim maximums and sort
 	const result: Map<string, Table> = new Map()
-	for (const shapeAnd of s.shapes) {
-		const [{}, product] = shapeAnd.shapeExprs
-		const [{}, ...expressions] = getExpressions(product)
-		const table = state.tables.get(shapeAnd.id)!
+	for (const [id, instanceMap] of state.instances) {
 		const r1: Table = new Map()
-		result.set(shapeAnd.id, r1)
-		for (const [subject, instances] of table) {
-			const r2: Map<string, Set<string>> = new Map()
+		result.set(id, r1)
+		for (const [subject, instances] of instanceMap) {
+			const r2: Set<string>[] = []
 			r1.set(subject, r2)
-			for (const [i, { predicate }] of expressions.entries()) {
+			for (const instance of instances) {
 				const r3: Set<string> = new Set()
-				r2.set(predicate, r3)
-				for (const object of collect(instances[i])) {
+				r2.push(r3)
+				for (const object of collect(instance)) {
 					r3.add(toId(object))
 				}
 			}
 		}
 	}
 
-	return result
+	const headers = new Map(
+		Array.from(state.shapes).map(([id, { expressions }]) => [
+			id,
+			expressions.map(({ predicate }) => predicate),
+		])
+	)
+
+	return [headers, result]
 }
 
-export function getDataset(
-	s: TypeOf<typeof Schema>,
-	tables: Map<string, Table>
-): RDF.Quad[] {
-	const dataset: RDF.Quad[] = []
-	for (const shapeAnd of s.shapes) {
-		const [{}, product] = shapeAnd.shapeExprs
-		const [{ valueExpr }] = getExpressions(product)
-		const {
-			values: [type],
-		} = valueExpr
-		const t = DataFactory.namedNode(type)
-		for (const [id, properties] of tables.get(shapeAnd.id)!) {
-			const subject = DataFactory.blankNode(id)
-			dataset.push(DataFactory.quad(subject, rdfTypeNode, t))
-			for (const [property, values] of properties) {
-				const predicate = DataFactory.namedNode(property)
-				for (const value of values) {
-					const object = fromId(value) as RDF.Quad_Object
-					dataset.push(DataFactory.quad(subject, predicate, object))
-				}
+export function* getQuads(table: Table, header: string[]): Generator<Quad> {
+	for (const [id, properties] of table) {
+		const subject = new BlankNode(id)
+		for (const [i, values] of properties.entries()) {
+			for (const value of values) {
+				const object = fromId(value) as Object<D>
+				yield new Quad(subject, new NamedNode(header[i]), object)
 			}
 		}
 	}
-	return dataset
 }
 
 const getComponent = (value: string, state: State) =>
@@ -272,24 +247,24 @@ function getGraphReference(
 }
 
 function handleDelete(shape: string, value: string, state: State) {
-	const table = state.tables.get(shape)!
-	const old = table.get(value)
+	const instanceMap = state.instances.get(shape)!
+	const old = instanceMap.get(value)
 	if (old === undefined) {
 		return
 	}
 
-	table.delete(value)
+	instanceMap.delete(value)
 
 	const key = `${shape}\t${value}`
 	const refs = state.references.get(key)
 	if (refs !== undefined) {
-		for (const [referenceShape, subject, property, id] of refs) {
-			const referenceTable = state.tables.get(referenceShape)!
-			const instance = referenceTable.get(subject)
-			if (instance !== undefined) {
-				instance[property].values.delete(id)
-				if (instance[property].values.size < instance[property].min) {
-					handleDelete(referenceShape, subject, state)
+		for (const [referenceId, subject, property, id] of refs) {
+			const referenceMap = state.instances.get(referenceId)!
+			const instances = referenceMap.get(subject)
+			if (instances !== undefined) {
+				instances[property].values.delete(id)
+				if (instances[property].values.size < instances[property].min) {
+					handleDelete(referenceId, subject, state)
 				}
 			}
 		}
@@ -297,15 +272,15 @@ function handleDelete(shape: string, value: string, state: State) {
 
 	const metaRefs = state.metaReferences.get(key)
 	if (metaRefs !== undefined) {
-		for (const [referenceShape, subject, property, id] of metaRefs) {
-			const referenceTable = state.tables.get(referenceShape)!
-			const instance = referenceTable.get(subject)
-			if (instance !== undefined) {
-				const graphs = instance[property].values.get(id)
+		for (const [referenceId, subject, property, id] of metaRefs) {
+			const referenceMap = state.instances.get(referenceId)!
+			const instances = referenceMap.get(subject)
+			if (instances !== undefined) {
+				const graphs = instances[property].values.get(id)
 				if (graphs !== undefined) {
 					graphs.delete(value)
 					if (graphs.size === 0) {
-						handleDelete(referenceShape, subject, state)
+						handleDelete(referenceId, subject, state)
 					}
 				}
 			}
@@ -315,23 +290,24 @@ function handleDelete(shape: string, value: string, state: State) {
 
 function instantiate(
 	shape: string,
-	subject: RDF.BlankNode,
+	subject: BlankNode,
 	expressions: AnnotatedTripleConstraint[],
 	state: State
 ): Instance[] | null {
 	const instances: Instance[] = new Array(expressions.length)
 	const references: Map<number, TripleConstraint & sortReference> = new Map()
 	for (const [i, expression] of expressions.entries()) {
-		const { predicate, valueExpr } = expression
+		const { valueExpr } = expression
 		const { min, max } = getRange(expression.min, expression.max)
+		const predicate = new NamedNode(expression.predicate)
 
-		const objects = getObjects(subject, predicate, valueExpr, state)
+		const objects = Array.from(getObjects(subject, predicate, valueExpr, state))
 		if (objects.length < min) {
 			return null
 		}
 
 		if (typeof valueExpr === "string" && objects.length > 0) {
-			for (const object of objects as RDF.BlankNode[]) {
+			for (const object of objects as BlankNode[]) {
 				const entry: Entry = [shape, subject.value, i, toId(object)]
 				addReference(valueExpr, object.value, entry, state.references)
 			}
@@ -347,7 +323,7 @@ function instantiate(
 			const objectId = toId(object)
 
 			if (typeof valueExpr === "string" || nodeSatisfies(object, valueExpr)) {
-				for (const preObject of preImage<RDF.Quad_Object>(object, state)) {
+				for (const preObject of preImage<Object<D>>(object, state)) {
 					for (const s of preSubjects(subject, predicate, preObject, state)) {
 						const graphs = getGraphs(s, predicate, preObject, state)
 						if (graphs.length > 0) {
@@ -391,27 +367,29 @@ function instantiate(
 	}
 
 	for (const [i, expression] of references) {
-		const { predicate, valueExpr } = expression
+		const { valueExpr } = expression
 		const { min, max } = getRange(expression.min, expression.max)
 		const [{ object: reference }, { object: sort }] = expression.annotations
 		const index = expressions.findIndex(
 			({ predicate }) => predicate === reference
 		)
+		const predicate = new NamedNode(expression.predicate)
 
 		const nonValues: Set<string> = new Set()
-		const referenceMap: Map<string, RDF.Quad_Object[]> = new Map()
+		const referenceMap: Map<string, Object<D>[]> = new Map()
 		const referenceExpr = expressions[index].valueExpr
 		const order = getOrder(
 			sort,
 			isDataTypeConstraint(referenceExpr) ? referenceExpr.datatype : null
 		)
 
+		const referencePredicate = new NamedNode(reference)
 		const values: Map<string, Set<string>> = new Map()
 		for (const referenceId of instances[index].values.keys()) {
-			const referenceObject = fromId(referenceId) as RDF.Quad_Object
+			const referenceObject = fromId(referenceId) as Object<D>
 			for (const preSubject of preSubjects(
 				subject,
-				reference,
+				referencePredicate,
 				referenceObject,
 				state
 			)) {
@@ -422,7 +400,7 @@ function instantiate(
 				)
 
 				for (const preObject of preObjects) {
-					const object = image<RDF.Quad_Object>(preObject, state)
+					const object = image<Object<D>>(preObject, state)
 					const objectId = toId(object)
 					if (nonValues.has(objectId)) {
 						continue
@@ -457,7 +435,7 @@ function instantiate(
 			min,
 			max,
 			values,
-			order: (a: RDF.Term, b: RDF.Term) => {
+			order: (a: Term<D>, b: Term<D>) => {
 				const [A] = referenceMap.get(toId(a))!
 				const [B] = referenceMap.get(toId(b))!
 				if (a === undefined || b === undefined) {
@@ -472,7 +450,7 @@ function instantiate(
 	return instances
 }
 
-function insert(order: Order, terms: RDF.Term[], term: RDF.Term) {
+function insert(order: Order, terms: Term<D>[], term: Term<D>) {
 	const i = terms.findIndex((t) => order(term, t))
 	if (i === -1) {
 		terms.push(term)
@@ -497,13 +475,12 @@ function addToSet(
 }
 
 function* preSubjects(
-	subject: RDF.BlankNode,
-	predicate: string,
-	preObject: RDF.Quad_Object,
+	subject: BlankNode,
+	predicate: NamedNode,
+	preObject: Object<D>,
 	state: State
-): Generator<RDF.BlankNode, void> {
-	const terms = state.coproduct.getSubjects(predicate, preObject, null)
-	for (const term of terms) {
+): Generator<BlankNode, void> {
+	for (const term of state.coproduct.subjects(predicate, preObject, null)) {
 		if (term.termType === "BlankNode") {
 			if (getComponent(term.value, state) === subject.value) {
 				yield term
@@ -513,16 +490,15 @@ function* preSubjects(
 }
 
 const getGraphs = (
-	preSubject: RDF.Quad_Subject,
-	predicate: string,
-	preObject: RDF.Quad_Object,
+	preSubject: Subject<D>,
+	predicate: NamedNode,
+	preObject: Object<D>,
 	state: State
 ): string[] =>
 	state.coproduct
 		.getGraphs(preSubject, predicate, preObject)
 		.filter(({ termType }) => termType === "BlankNode")
 		.map(({ value }) => value)
-// .map(({ value }) => getComponent(value, state))
 
 function addReference(
 	shape: string,
@@ -539,16 +515,16 @@ function addReference(
 	}
 }
 
-function getObjects(
-	subject: RDF.Quad_Subject,
-	predicate: string,
+function* getObjects(
+	subject: Subject<D>,
+	predicate: NamedNode,
 	valueExpr: shapeExpr,
 	state: State
-): RDF.Quad_Object[] {
-	const objects = state.pushout.getObjects(subject, predicate, null)
-	if (typeof valueExpr === "string") {
-		return objects.filter(({ termType }) => termType === "BlankNode")
-	} else {
-		return objects
+): Generator<Object<D>, void, undefined> {
+	const blank = typeof valueExpr === "string"
+	for (const object of state.pushout.objects(subject, predicate, null)) {
+		if ((object.termType === "BlankNode") === blank) {
+			yield object
+		}
 	}
 }

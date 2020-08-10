@@ -3,9 +3,6 @@
 	<head>
 		<meta charset="UTF-8" />
 		<title>rex</title>
-		<!-- <script defer src="react.development.js"></script>
-		<script defer src="react-dom.development.js"></script>
-		<script defer src="jsonld.min.js"></script> -->
 		<script
 			defer
 			src="https://unpkg.com/react@16.13.1/umd/react.production.min.js"
@@ -24,6 +21,7 @@
 			if (!("captureStackTrace" in Error)) {
 				Error.captureStackTrace = function () {}
 			}
+			let testRange, ShExJison
 		</script>
 		<link href="webui/lib/rdf-cytoscape.css" rel="stylesheet" type="text/css" />
 		<style>
@@ -55,6 +53,9 @@
 				font-family: monospace;
 				background-color: mintcream;
 				height: 300px;
+				resize: none;
+				white-space: pre;
+				padding: 2px;
 			}
 
 			section.schema div.error {

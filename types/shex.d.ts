@@ -1,7 +1,7 @@
 declare module "@shexjs/parser" {
 	function construct(): Parser
 
-	class Parser {
+	interface Parser {
 		parse(shex: string): Schema
 	}
 
@@ -23,8 +23,8 @@ declare module "@shexjs/parser" {
 		| Shape
 		| ShapeExternal
 
-	type ShapeOr = { type: "ShapeOr"; shapeExprs: shapeExpr[] }
-	type ShapeAnd = { type: "ShapeAnd"; shapeExprs: shapeExpr[] }
+	type ShapeOr = { type: "ShapeOr"; shapeExprs: [shapeExpr, ...shapeExpr[]] }
+	type ShapeAnd = { type: "ShapeAnd"; shapeExprs: [shapeExpr, ...shapeExpr[]] }
 	type ShapeNot = { type: "ShapeNot"; shapeExpr: shapeExpr }
 	type ShapeExternal = { type: "ShapeExternal" }
 
@@ -112,7 +112,7 @@ declare module "@shexjs/parser" {
 	type EachOf = {
 		type: "EachOf"
 		id?: string
-		expressions: tripleExpr[]
+		expressions: [tripleExpr, ...tripleExpr[]]
 		min?: number
 		max?: number
 		semActs?: SemAct[]
@@ -122,7 +122,7 @@ declare module "@shexjs/parser" {
 	type OneOf = {
 		type: "OneOf"
 		id?: string
-		expressions: tripleExpr[]
+		expressions: [tripleExpr, ...tripleExpr[]]
 		min?: number
 		max?: number
 		semActs?: SemAct[]

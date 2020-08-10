@@ -1,11 +1,12 @@
-import RDF from "rdf-js"
-import { Instance } from "./state"
-import { fromId } from "./utils"
+import { D, Object } from "n3.ts"
 
-export function collect({ values, order, max }: Instance): RDF.Quad_Object[] {
-	const array: RDF.Quad_Object[] = []
+import { Instance } from "./state.js"
+import { fromId } from "./utils.js"
+
+export function collect({ values, order, max }: Instance): Object<D>[] {
+	const array: Object<D>[] = []
 	for (const id of values.keys()) {
-		const a = fromId(id) as RDF.Quad_Object
+		const a = fromId(id) as Object<D>
 		const i = array.findIndex((b) => order(a, b))
 		if (i === -1) {
 			if (array.length !== max) {
