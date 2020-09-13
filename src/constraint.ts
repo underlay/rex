@@ -1,5 +1,7 @@
 import t from "./io.js"
 
+// import intersection from "io-ts/"
+
 import * as ShExParser from "@shexjs/parser"
 
 export const ObjectLiteral = t.intersection([

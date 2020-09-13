@@ -23,8 +23,14 @@ declare module "@shexjs/parser" {
 		| Shape
 		| ShapeExternal
 
-	type ShapeOr = { type: "ShapeOr"; shapeExprs: [shapeExpr, ...shapeExpr[]] }
-	type ShapeAnd = { type: "ShapeAnd"; shapeExprs: [shapeExpr, ...shapeExpr[]] }
+	type ShapeOr = {
+		type: "ShapeOr"
+		shapeExprs: shapeExpr[]
+	}
+	type ShapeAnd = {
+		type: "ShapeAnd"
+		shapeExprs: shapeExpr[]
+	}
 	type ShapeNot = { type: "ShapeNot"; shapeExpr: shapeExpr }
 	type ShapeExternal = { type: "ShapeExternal" }
 
@@ -39,9 +45,12 @@ declare module "@shexjs/parser" {
 
 	type literalNodeConstraint =
 		| ({ nodeKind: "literal" } & xsFacets)
-		| ({ dataType: string } & xsFacets)
-		| { values: valueSetValue[] & xsFacets }
+		| datatypeConstraint
+		| valueSetConstraint
 		| numericFacets
+
+	type datatypeConstraint = { datatype: string } & xsFacets
+	type valueSetConstraint = { values: valueSetValue[] } & xsFacets
 
 	type stringLength =
 		| { length: number }
@@ -112,7 +121,7 @@ declare module "@shexjs/parser" {
 	type EachOf = {
 		type: "EachOf"
 		id?: string
-		expressions: [tripleExpr, ...tripleExpr[]]
+		expressions: tripleExpr[]
 		min?: number
 		max?: number
 		semActs?: SemAct[]
@@ -122,14 +131,17 @@ declare module "@shexjs/parser" {
 	type OneOf = {
 		type: "OneOf"
 		id?: string
-		expressions: [tripleExpr, ...tripleExpr[]]
+		expressions: tripleExpr[]
 		min?: number
 		max?: number
 		semActs?: SemAct[]
 		annotations?: Annotation[]
 	}
 
-	type TripleConstraint = {
+	type TripleConstraint<
+		P extends string = string,
+		V extends shapeExpr | undefined = shapeExpr | undefined
+	> = {
 		type: "TripleConstraint"
 		id?: string
 		inverse?: boolean
@@ -205,6 +217,7 @@ declare module "@shexjs/core" {
 
 	import * as ShExUtil from "@shexjs/core/lib/ShExUtil.js"
 	const Util: typeof ShExUtil
+	type N3DB = ShExUtil.N3DB
 
 	type Start = { term: "START" }
 	class Validator {
@@ -222,14 +235,14 @@ declare module "@shexjs/core" {
 			db: ShExUtil.N3DB,
 			point: string,
 			shape: string | Start
-		): ShapeTestT | Failure // ???
+		): ShapeTest | Failure // ???
 	}
 
 	type SuccessResult =
 		| ShapeAndResults
 		| ShapeOrResults
 		| ShapeNotResults
-		| ShapeTestT
+		| ShapeTest
 		| NodeTest
 
 	type FailureResult =
@@ -275,68 +288,65 @@ declare module "@shexjs/core" {
 		solution: SuccessResult
 	}
 
-	interface NodeTest {
+	type NodeTest = {
 		type: "NodeTest"
 		node: string
 		shape: string
 		shapeExpr: shapeExpr
 	}
 
-	interface ShapeTestT extends ShapeTest<SuccessResult> {}
-	type ShapeTest<R> = {
+	// interface ShapeTestT extends ShapeTest<SuccessResult> {}
+	type ShapeTest = {
 		type: "ShapeTest"
 		node: string
 		shape: string
-		solution: solutions<R>
+		solution: solutions
 		annotations?: Annotation[]
 	}
 
-	type solutions<R> =
-		| EachOfSolutions<R>
-		| OneOfSolutions<R>
-		| TripleConstraintSolutions<R>
+	type solutions = EachOfSolutions | OneOfSolutions | TripleConstraintSolutions
 
-	type EachOfSolutions<R> = {
+	type EachOfSolutions = {
 		type: "EachOfSolutions"
-		solutions: EachOfSolution<R>[]
+		solutions: EachOfSolution[]
 		min?: number
 		max?: number
 		annotations?: Annotation[]
 	}
 
-	type EachOfSolution<R> = {
+	type EachOfSolution = {
 		type: "EachOfSolution"
-		expressions: solutions<R>[]
+		expressions: solutions[]
 	}
 
-	type OneOfSolutions<R> = {
+	type OneOfSolutions = {
 		type: "OneOfSolutions"
-		solutions: OneOfSolution<R>[]
+		solutions: OneOfSolution[]
 		min?: number
 		max?: number
 		annotations?: Annotation[]
 	}
 
-	type OneOfSolution<R> = {
+	type OneOfSolution = {
 		type: "OneOfSolution"
-		expressions: solutions<R>[]
+		expressions: solutions[]
 	}
 
-	type TripleConstraintSolutions<R, O = objectValue> = {
+	type TripleConstraintSolutions<O = objectValue> = {
 		type: "TripleConstraintSolutions"
 		predicate: string
-		solutions: TestedTriple<R, O>[]
+		solutions: TestedTriple<O>[]
 		valueExpr?: shapeExpr
 		min?: number
 		max?: number
 		annotations?: Annotation[]
 	}
 
-	type TestedTriple<R, O = objectValue> = {
+	type TestedTriple<O = objectValue> = {
 		type: "TestedTriple"
 		subject: string
 		predicate: string
 		object: O
-		referenced?: R
+		referenced?: SuccessResult
 	}
 }

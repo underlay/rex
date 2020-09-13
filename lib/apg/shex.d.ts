@@ -1,0 +1,11 @@
+import { Store, D, Subject } from "n3.ts";
+import Either from "fp-ts/lib/Either.js";
+import ShExParser from "@shexjs/parser";
+import ShExCore from "@shexjs/core";
+import { Label, Value } from "./schema.js";
+import { LabelShape } from "./reference.js";
+export declare function makeShExSchema(labels: Label[]): [ShapeMap, ShExParser.Schema];
+declare type ShapeMap = Map<string, LabelShape>;
+export declare function parseSchema(store: Store, schemaSchema: Label[]): Label[];
+export declare function parse(store: Store, labels: Label[]): Generator<[Label, Generator<[Subject<D>, Either.Either<ShExCore.FailureResult, Value>]>], void, undefined>;
+export {};

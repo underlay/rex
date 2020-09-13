@@ -1,3 +1,6 @@
+import Ord from "fp-ts/lib/Ord.js"
+// import { sequenceT } from "fp-ts/Apply"
+
 import { Term, D } from "n3.ts"
 import { rex, xsd, defaultSort } from "./vocab.js"
 import {
@@ -16,101 +19,116 @@ import {
 	isNumeric,
 	isTemporal,
 	isBoolean,
-	numeric,
 	numericDatatype,
 	AnnotatedTripleConstraint,
 	temporalDatatype,
 	booleanDatatype,
 } from "./schema.js"
 
-import t from "./io.js"
+export type Order = Ord.Ord<Term<D>>
 
-export type Order = (a: Term<D>, b: Term<D>) => boolean
+// const s = sequenceT(encodeInteger)
 
 const numericInteger = {
-	[rex.greatest]: (
-		a: TypedLiteral<integerDatatype>,
-		b: TypedLiteral<integerDatatype>
-	) => encodeInteger(a) > encodeInteger(b),
-	[rex.least]: (
-		a: TypedLiteral<integerDatatype>,
-		b: TypedLiteral<integerDatatype>
-	) => encodeInteger(a) < encodeInteger(b),
+	[rex.greatest]: Ord.fromCompare<TypedLiteral<integerDatatype>>((a, b) => {
+		const A = encodeInteger(a)
+		const B = encodeInteger(b)
+		return A < B ? -1 : A > B ? 1 : 0
+	}),
+	[rex.least]: Ord.fromCompare<TypedLiteral<integerDatatype>>((a, b) => {
+		const A = encodeInteger(a)
+		const B = encodeInteger(b)
+		return A < B ? 1 : A > B ? -1 : 0
+	}),
 }
 
 const numericDecimal = {
-	[rex.greatest]: (
-		a: TypedLiteral<typeof xsd.decimal>,
-		b: TypedLiteral<typeof xsd.decimal>
-	) => encodeDecimal(a) > encodeDecimal(b),
-	[rex.least]: (
-		a: TypedLiteral<typeof xsd.decimal>,
-		b: TypedLiteral<typeof xsd.decimal>
-	) => encodeDecimal(a) < encodeDecimal(b),
+	[rex.greatest]: Ord.fromCompare<TypedLiteral<typeof xsd.decimal>>((a, b) => {
+		const A = encodeDecimal(a)
+		const B = encodeDecimal(b)
+		return A < B ? -1 : A > B ? 1 : 0
+	}),
+	[rex.least]: Ord.fromCompare<TypedLiteral<typeof xsd.decimal>>((a, b) => {
+		const A = encodeDecimal(a)
+		const B = encodeDecimal(b)
+		return A < B ? 1 : A > B ? -1 : 0
+	}),
 }
 
 const numericDouble = {
-	[rex.greatest]: (
-		a: TypedLiteral<typeof xsd.double>,
-		b: TypedLiteral<typeof xsd.double>
-	) => encodeDouble(a) > encodeDouble(b),
-	[rex.least]: (
-		a: TypedLiteral<typeof xsd.double>,
-		b: TypedLiteral<typeof xsd.double>
-	) => encodeDouble(a) < encodeDouble(b),
+	[rex.greatest]: Ord.fromCompare<TypedLiteral<typeof xsd.double>>((a, b) => {
+		const A = encodeDouble(a)
+		const B = encodeDouble(b)
+		return A < B ? -1 : A > B ? 1 : 0
+	}),
+	[rex.least]: Ord.fromCompare<TypedLiteral<typeof xsd.double>>((a, b) => {
+		const A = encodeDouble(a)
+		const B = encodeDouble(b)
+		return A < B ? 1 : A > B ? -1 : 0
+	}),
 }
 
 const numericFloat = {
-	[rex.greatest]: (
-		a: TypedLiteral<typeof xsd.float>,
-		b: TypedLiteral<typeof xsd.float>
-	) => encodeFloat(a) > encodeFloat(b),
-	[rex.least]: (
-		a: TypedLiteral<typeof xsd.float>,
-		b: TypedLiteral<typeof xsd.float>
-	) => encodeFloat(a) < encodeFloat(b),
+	[rex.greatest]: Ord.fromCompare<TypedLiteral<typeof xsd.float>>((a, b) => {
+		const A = encodeFloat(a)
+		const B = encodeFloat(b)
+		return A < B ? -1 : A > B ? 1 : 0
+	}),
+	[rex.least]: Ord.fromCompare<TypedLiteral<typeof xsd.float>>((a, b) => {
+		const A = encodeFloat(a)
+		const B = encodeFloat(b)
+		return A < B ? 1 : A > B ? -1 : 0
+	}),
 }
 
-function getNumericOrder<T extends numericDatatype>(
-	sort: t.TypeOf<typeof numeric>,
-	datatype: T
-): Order {
-	if (datatype === xsd.decimal) {
-		return numericDecimal[sort] as Order
-	} else if (datatype === xsd.double) {
-		return numericDouble[sort] as Order
-	} else if (datatype === xsd.float) {
-		return numericFloat[sort] as Order
-	} else {
-		return numericInteger[sort] as Order
-	}
-}
+// function getNumericOrder<T extends numericDatatype>(
+// 	sort: t.TypeOf<typeof numeric>,
+// 	datatype: T
+// ): Order {
+// 	if (datatype === xsd.decimal) {
+// 		return numericDecimal[sort] as Order
+// 	} else if (datatype === xsd.double) {
+// 		return numericDouble[sort] as Order
+// 	} else if (datatype === xsd.float) {
+// 		return numericFloat[sort] as Order
+// 	} else {
+// 		return numericInteger[sort] as Order
+// 	}
+// }
 
 const temporal = {
-	[rex.earliest]: (
-		a: TypedLiteral<typeof xsd.date | typeof xsd.dateTime>,
-		b: TypedLiteral<typeof xsd.date | typeof xsd.dateTime>
-	) => new Date(a.value) < new Date(b.value),
-	[rex.latest]: (
-		a: TypedLiteral<typeof xsd.date | typeof xsd.dateTime>,
-		b: TypedLiteral<typeof xsd.date | typeof xsd.dateTime>
-	) => new Date(a.value) > new Date(b.value),
+	[rex.latest]: Ord.fromCompare<
+		TypedLiteral<typeof xsd.date | typeof xsd.dateTime>
+	>((a, b) => {
+		const A = new Date(a.value)
+		const B = new Date(b.value)
+		return A < B ? -1 : A > B ? 1 : 0
+	}),
+	[rex.earliest]: Ord.fromCompare<
+		TypedLiteral<typeof xsd.date | typeof xsd.dateTime>
+	>((a, b) => {
+		const A = new Date(a.value)
+		const B = new Date(b.value)
+		return A < B ? 1 : A > B ? -1 : 0
+	}),
 }
 
 const boolean = {
-	[rex.all]: (
-		a: TypedLiteral<typeof xsd.boolean>,
-		b: TypedLiteral<typeof xsd.boolean>
-	) => a.value === "true" && b.value === "true",
-	[rex.any]: (
-		a: TypedLiteral<typeof xsd.boolean>,
-		b: TypedLiteral<typeof xsd.boolean>
-	) => a.value === "true" || b.value === "true",
+	[rex.all]: Ord.fromCompare<TypedLiteral<typeof xsd.boolean>>((a, b) => {
+		return a.value === b.value ? 0 : a.value === "true" ? -1 : 1
+	}),
+	[rex.any]: Ord.fromCompare<TypedLiteral<typeof xsd.boolean>>((a, b) => {
+		return a.value === b.value ? 0 : a.value === "true" ? 1 : -1
+	}),
 }
 
 const lexicographic = {
-	[rex.first]: ({ value: a }: Term, { value: b }: Term) => a < b,
-	[rex.last]: ({ value: a }: Term, { value: b }: Term) => b < a,
+	[rex.first]: Ord.fromCompare<Term<D>>(({ value: a }, { value: b }) =>
+		a < b ? -1 : a > b ? 1 : 0
+	),
+	[rex.last]: Ord.fromCompare<Term<D>>(({ value: a }, { value: b }) =>
+		a < b ? 1 : a > b ? -1 : 0
+	),
 }
 
 export function getLexicographicOrder(

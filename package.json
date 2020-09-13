@@ -19,11 +19,11 @@
 	"dependencies": {
 		"@shexjs/core": "file:shex.js/packages/shex-core",
 		"@shexjs/parser": "file:shex.js/packages/shex-parser",
-		"@types/n3": "^1.4.3",
+		"@types/n3": "^1.4.4",
 		"buffer": "^5.6.0",
-		"fp-ts": "^2.8.1",
-		"io-ts": "^2.2.9",
-		"n3.ts": "0.0.8",
+		"fp-ts": "^2.8.2",
+		"io-ts": "^2.2.10",
+		"n3.ts": "0.0.9",
 		"stream-browserify": "^3.0.0",
 		"uuid": "^8.3.0"
 	},

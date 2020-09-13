@@ -1,5 +1,6 @@
 {
-	"include": ["src/*", "types/*"],
+	"include": ["src/*", "types/*", "apg/*"],
+	"exclude": ["editor/*"],
 	"compilerOptions": {
 		"strict": true,
 		"module": "ESNext",

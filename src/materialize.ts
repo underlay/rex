@@ -151,9 +151,9 @@ export function materialize(
 											getComponent(preSubject.value, state) === name &&
 											graphs.has(preSubject.value)
 										) {
-											if (max === null || order(term, max)) {
-												max = term
-											}
+											// if (max === null || order(term, max)) {
+											// 	max = term
+											// }
 										}
 									}
 								}
@@ -168,11 +168,11 @@ export function materialize(
 								}
 							}
 						}
-						instance[i].order = (a: Term<D>, b: Term<D>) => {
-							const A = metaReferences.get(toId(a))!
-							const B = metaReferences.get(toId(b))!
-							return order(A, B)
-						}
+						// instance[i].order = (a: Term<D>, b: Term<D>) => {
+						// 	const A = metaReferences.get(toId(a))!
+						// 	const B = metaReferences.get(toId(b))!
+						// 	return order(A, B)
+						// }
 					}
 				}
 			}
@@ -431,32 +431,32 @@ function instantiate(
 			return null
 		}
 
-		instances[i] = Object.freeze({
-			min,
-			max,
-			values,
-			order: (a: Term<D>, b: Term<D>) => {
-				const [A] = referenceMap.get(toId(a))!
-				const [B] = referenceMap.get(toId(b))!
-				if (a === undefined || b === undefined) {
-					throw new Error(`Unexpected values ${toId(a)}, ${toId(b)}`)
-				} else {
-					return order(A, B)
-				}
-			},
-		})
+		// instances[i] = Object.freeze({
+		// 	min,
+		// 	max,
+		// 	values,
+		// 	order: (a: Term<D>, b: Term<D>) => {
+		// 		const [A] = referenceMap.get(toId(a))!
+		// 		const [B] = referenceMap.get(toId(b))!
+		// 		if (a === undefined || b === undefined) {
+		// 			throw new Error(`Unexpected values ${toId(a)}, ${toId(b)}`)
+		// 		} else {
+		// 			return order(A, B)
+		// 		}
+		// 	},
+		// })
 	}
 
 	return instances
 }
 
 function insert(order: Order, terms: Term<D>[], term: Term<D>) {
-	const i = terms.findIndex((t) => order(term, t))
-	if (i === -1) {
-		terms.push(term)
-	} else {
-		terms.splice(i, 0, term)
-	}
+	// const i = terms.findIndex((t) => order(term, t))
+	// if (i === -1) {
+	// 	terms.push(term)
+	// } else {
+	// 	terms.splice(i, 0, term)
+	// }
 }
 
 function addToSet(
