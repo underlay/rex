@@ -1,0 +1,32 @@
+{
+	"@context": {
+		"@vocab": "http://purl.org/dc/terms/"
+	},
+	"@graph": {
+		"@type": "BibliographicResource",
+		"title": "RDF-3X: a RISC-style engine for RDF",
+		"identifier": "10.14778/1453856.1453927",
+		"references": [
+			{
+				"@type": "BibliographicResource",
+				"title": "Scalable semantic web data management using vertical partitioning",
+				"identifier": "10.5555/1325851.1325900"
+			},
+			{
+				"@type": "BibliographicResource",
+				"title": "Rethinking Database System Architecture: Towards a Self-Tuning RISC-Style Database System",
+				"identifier": "10.5555/645926.671696"
+			}
+		],
+		"contributor": [
+			{
+				"@type": "Agent",
+				"title": "Thomas Neumann"
+			},
+			{
+				"@type": "Agent",
+				"title": "Gerhard Weikum"
+			}
+		]
+	}
+}

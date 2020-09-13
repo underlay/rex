@@ -1,0 +1,12 @@
+_:c14n1 <http://schema.org/date> "2020-06-28T02:53:52.175Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+_:c14n1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.com/Update> .
+_:c14n2 <http://schema.org/age> "11"^^<http://www.w3.org/2001/XMLSchema#integer> _:c14n1 .
+_:c14n2 <http://schema.org/name> "Jack" _:c14n1 .
+_:c14n2 <http://schema.org/url> <http://example.com/jack> _:c14n1 .
+_:c14n2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Person> _:c14n1 .
+_:c14n3 <http://schema.org/age> "40"^^<http://www.w3.org/2001/XMLSchema#integer> _:c14n1 .
+_:c14n3 <http://schema.org/children> _:c14n2 _:c14n1 .
+_:c14n3 <http://schema.org/foo> _:c14n0 _:c14n1 .
+_:c14n3 <http://schema.org/name> "JOHN D" _:c14n1 .
+_:c14n3 <http://schema.org/url> <http://example.com/john-doe> _:c14n1 .
+_:c14n3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Person> _:c14n1 .

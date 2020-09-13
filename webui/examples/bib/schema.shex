@@ -1,0 +1,16 @@
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX rex: <http://underlay.org/ns/rex#>
+
+dcterms:BibliographicResource bnode {
+  a [ dcterms:BibliographicResource ] ;
+  dcterms:identifier xsd:string ;
+  dcterms:title xsd:string ;
+  dcterms:references @dcterms:BibliographicResource * ;
+  dcterms:contributor @dcterms:Agent * ;
+} // rex:key dcterms:identifier
+
+dcterms:Agent bnode {
+  a [ dcterms:Agent ] ;
+  dcterms:title xsd:string ;
+} // rex:key dcterms:title

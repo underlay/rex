@@ -1,0 +1,20 @@
+_:c14n0 <http://schema.org/age> "15"^^<http://www.w3.org/2001/XMLSchema#integer> _:c14n1 .
+_:c14n0 <http://schema.org/name> "Jill" _:c14n1 .
+_:c14n0 <http://schema.org/url> <http://example.com/jill> _:c14n1 .
+_:c14n0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Person> _:c14n1 .
+_:c14n1 <http://schema.org/date> "2020-06-28T02:55:02.276Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+_:c14n1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.com/Update> .
+_:c14n2 <http://schema.org/age> "49"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:c14n2 <http://schema.org/name> "Phillip" .
+_:c14n2 <http://schema.org/url> <http://example.com/phillip> .
+_:c14n2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Person> .
+_:c14n3 <http://schema.org/age> "28"^^<http://www.w3.org/2001/XMLSchema#integer> .
+_:c14n3 <http://schema.org/age> "30"^^<http://www.w3.org/2001/XMLSchema#integer> _:c14n1 .
+_:c14n3 <http://schema.org/children> _:c14n0 _:c14n1 .
+_:c14n3 <http://schema.org/children> _:c14n4 _:c14n1 .
+_:c14n3 <http://schema.org/name> "John Doe" _:c14n1 .
+_:c14n3 <http://schema.org/url> <http://example.com/john-doe> _:c14n1 .
+_:c14n3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Person> _:c14n1 .
+_:c14n4 <http://schema.org/name> "4"^^<http://www.w3.org/2001/XMLSchema#integer> _:c14n1 .
+_:c14n4 <http://schema.org/url> <http://example.com/four> _:c14n1 .
+_:c14n4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/Person> _:c14n1 .
