@@ -17,6 +17,7 @@ import {
 
 import { makeComponentId, ProductConfig } from "./product"
 import { CoproductConfig, makeOptionId } from "./coproduct"
+import { xsdDatatypes } from "./utils"
 
 type Types = {
 	label: ReferenceType
@@ -174,14 +175,6 @@ function ReferenceConfig(props: {
 		</div>
 	)
 }
-
-const xsdDatatypes: string[] = [
-	IRIs.xsd.string,
-	IRIs.xsd.integer,
-	IRIs.xsd.double,
-	IRIs.xsd.dateTime,
-	IRIs.xsd.boolean,
-]
 
 function LiteralConfig(props: {
 	datatype: string

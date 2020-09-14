@@ -11,11 +11,12 @@ import { parseSchemaString } from "../lib/apg/shex.js"
 import {
 	setArrayIndex,
 	validateKey,
-	namespacePattern,
 	findError,
+	compactLabelWithNamespace,
 } from "./utils"
 import { LabelConfig } from "./label"
 import { Namespace } from "./namespace"
+import { Graph } from "./graph"
 
 const main = document.querySelector("main")
 
@@ -90,6 +91,16 @@ function Index({}) {
 		[labels]
 	)
 
+	const handleImport = React.useCallback(
+		(labels: Label[], namespace: null | string) => {
+			compactLabelWithNamespace(labels, namespace)
+			setNamespace(namespace)
+			setLabels(labels)
+			setLabelMap(new Map(labels.map((label) => [label.id, label.key])))
+		},
+		[]
+	)
+
 	const handleImportChange = React.useCallback(
 		({ target: { files } }: React.ChangeEvent<HTMLInputElement>) => {
 			if (files !== null && files.length === 1) {
@@ -98,9 +109,7 @@ function Index({}) {
 					([{ "@graph": schemaSchema }, input]) => {
 						const labels = parseSchemaString(input, schemaSchema)
 						console.log("imported labels", labels)
-						setNamespace(null)
-						setLabels(labels)
-						setLabelMap(new Map(labels.map((label) => [label.id, label.key])))
+						handleImport(labels, null)
 					}
 				)
 			}
@@ -118,12 +127,8 @@ function Index({}) {
 	}, [labels])
 
 	const handleLoadExampleClick = React.useCallback(({}) => {
-		schemaSchemaFile.then(
-			({ "@graph": schemaSchema }: { "@graph": Label[] }) => {
-				setNamespace("http://underlay.org/ns/")
-				setLabels(schemaSchema)
-				setLabelMap(new Map(schemaSchema.map(({ id, key }) => [id, key])))
-			}
+		schemaSchemaFile.then(({ "@graph": schemaSchema }: { "@graph": Label[] }) =>
+			handleImport(schemaSchema, "http://underlay.org/ns/")
 		)
 	}, [])
 
@@ -174,6 +179,9 @@ function Index({}) {
 							onRemove={handleRemove}
 						/>
 					))}
+				</section>
+				<section className="graph">
+					<Graph labels={labels} />
 				</section>
 			</div>
 		</React.Fragment>

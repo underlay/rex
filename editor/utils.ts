@@ -1,4 +1,6 @@
-import { Type, isReference } from "../lib/apg/schema"
+import { IRIs } from "n3.ts"
+
+import { Type, isReference, Label } from "../lib/apg/schema.js"
 
 export function setArrayIndex<T>(array: T[], element: T, index: number): T[] {
 	const result = [...array]
@@ -64,3 +66,43 @@ export function findError(type: Type, namespace: null | string): null | Error {
 	}
 	return null
 }
+
+function compactTypeWithNamespace(type: Type, namespace: string) {
+	if (isReference(type)) {
+		return
+	} else if (type.type === "product") {
+		for (const component of type.components) {
+			compactTypeWithNamespace(component.value, namespace)
+			if (component.key.startsWith(namespace)) {
+				component.key = component.key.slice(namespace.length)
+			}
+		}
+	} else if (type.type === "coproduct") {
+		for (const option of type.options) {
+			compactTypeWithNamespace(option.value, namespace)
+		}
+	}
+}
+
+export function compactLabelWithNamespace(
+	labels: Label[],
+	namespace: null | string
+) {
+	if (namespace === null) {
+		return
+	}
+	for (const label of labels) {
+		compactTypeWithNamespace(label.value, namespace)
+		if (label.key.startsWith(namespace)) {
+			label.key = label.key.slice(namespace.length)
+		}
+	}
+}
+
+export const xsdDatatypes: string[] = [
+	IRIs.xsd.string,
+	IRIs.xsd.integer,
+	IRIs.xsd.double,
+	IRIs.xsd.dateTime,
+	IRIs.xsd.boolean,
+]
