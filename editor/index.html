@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>schema editor</title>
+		<script defer src="lib/index.min.js"></script>
+		<script>
+			if (!("captureStackTrace" in Error)) {
+				Error.captureStackTrace = function () {}
+			}
+			let testRange, ShExJison
+		</script>
+
+		<style>
+			main {
+				padding-right: 0.5em;
+				min-width: max-content;
+			}
+
+			header {
+				display: flex;
+				align-items: baseline;
+				margin-left: 0.5em;
+				min-width: max-content;
+			}
+
+			header > h1 {
+				flex: 1;
+				margin-right: 1em;
+			}
+
+			div.namespace {
+				margin-left: 0.5em;
+			}
+
+			div.namespace > label {
+				margin-right: 0.5em;
+			}
+
+			div.panels {
+				display: flex;
+			}
+
+			div.panels section.editor {
+				min-width: 640px;
+			}
+
+			section.editor div {
+				padding: 0.5em;
+				margin: 0.5em;
+				border: 1px solid #95a482;
+				padding-right: 0;
+				margin-right: 0;
+				border-right: none;
+			}
+
+			section.editor div.error {
+				/* box-shadow: inset 0px 0px 0px 1px rgba(0, 0, 0, 1); */
+				border-width: 2px;
+				margin-left: calc(0.5em - 1px);
+				border-color: black;
+			}
+
+			section.editor > div.error {
+				border-right: 1px solid black;
+			}
+
+			section.editor > div.namespace,
+			section.editor > div.header,
+			section.editor div.label {
+				border-right: 1px solid #95a482;
+			}
+
+			section.editor label > span:first-child {
+				margin-right: 0.5em;
+				user-select: none;
+			}
+
+			section.editor div.header {
+				display: flex;
+				justify-content: space-between;
+			}
+
+			section.editor div.header > button.add {
+				margin-right: 0.5em;
+			}
+
+			section.editor div.value {
+				display: flex;
+				align-items: baseline;
+			}
+
+			section.editor div.value > label.type {
+				margin-right: 1em;
+			}
+
+			section.editor div.value > span.remove {
+				flex: 1;
+				align-self: center;
+				margin-left: 1em;
+			}
+
+			section.editor div.value > span.remove > button {
+				float: right;
+				margin-right: 0.5em;
+			}
+
+			section.editor div.literal > label.datatype > input[type="text"] {
+				margin-left: 0.5em;
+			}
+
+			section.editor input.uri {
+				width: 240px;
+			}
+		</style>
+		<style>
+			section.editor > div.namespace {
+				background-color: whitesmoke;
+			}
+			section.editor > div.header,
+			div.label,
+			div.reference {
+				background-color: seashell;
+			}
+			div.product {
+				background-color: aliceblue;
+			}
+			div.coproduct {
+				background-color: lavender;
+			}
+			div.literal {
+				background-color: lightyellow;
+			}
+			div.value {
+				background-color: whitesmoke;
+			}
+			div.error {
+				background-color: lavenderblush;
+			}
+		</style>
+	</head>
+
+	<body>
+		<main></main>
+	</body>
+</html>

@@ -7,6 +7,7 @@ import {
 	D,
 	Object,
 	Subject,
+	Parse,
 } from "n3.ts"
 import Either from "fp-ts/lib/Either.js"
 
@@ -122,6 +123,14 @@ type ShapeMap = Map<string, LabelShape>
 type State = Readonly<{ labelMap: LabelMap; shapeMap: ShapeMap }>
 
 const rdfType = new NamedNode(rdf.type)
+
+export function parseSchemaString(
+	input: string,
+	schemaSchema: Label[]
+): Label[] {
+	const store = new Store(Parse(input))
+	return parseSchema(store, schemaSchema)
+}
 
 export function parseSchema(store: Store, schemaSchema: Label[]): Label[] {
 	const map: Map<string, Map<string, Value>> = new Map()
@@ -324,7 +333,7 @@ function parseResult(
 	state: State
 ): Either.Either<ShExCore.FailureResult, Value> {
 	if (isFailure(result)) {
-		return Either.left(result)
+		return { _tag: "Left", left: result }
 	} else if (isReference(type)) {
 		if (isLabelResult(result) && typeof shapeExpr === "string") {
 			const label = state.labelMap.get(type.id)!
@@ -341,19 +350,19 @@ function parseResult(
 		}
 	} else if (type.type === "nil") {
 		if (isNilShapeResult(result) && node instanceof BlankNode) {
-			return Either.right(node)
+			return { _tag: "Right", right: node }
 		} else {
 			throw new Error("Invalid result for nil type")
 		}
 	} else if (type.type === "literal") {
 		if (isLiteralResult(result) && node instanceof Literal) {
-			return Either.right(node)
+			return { _tag: "Right", right: node }
 		} else {
 			throw new Error("Invalid result for literal type")
 		}
 	} else if (type.type === "iri") {
 		if (isIriResult(result) && node instanceof NamedNode) {
-			return Either.right(node)
+			return { _tag: "Right", right: node }
 		} else {
 			throw new Error("Invalid result for iri type")
 		}
@@ -373,7 +382,7 @@ function parseResult(
 				if (referenced !== undefined) {
 					const r = wrapReference(referenced, valueExpr)
 					const value = parseResult(o, component.value, r, valueExpr, state)
-					if (Either.isRight(value)) {
+					if (value._tag === "Right") {
 						children.set(component.key, value.right)
 					} else {
 						return value
@@ -394,7 +403,7 @@ function parseResult(
 					throw new Error("Invalid TripleConstraintSolutions result")
 				}
 			}
-			return Either.right(new Tree(node, children))
+			return { _tag: "Right", right: new Tree(node, children) }
 		} else {
 			throw new Error("Invalid result for product type")
 		}

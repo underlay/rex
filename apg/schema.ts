@@ -27,6 +27,20 @@ export type Component = { type: "component"; key: string; value: Type }
 export type CoproductType = { type: "coproduct"; options: Option[] }
 export type Option = { type: "option"; value: Type }
 
+export const context = {
+	id: "@id",
+	type: "@type",
+	"@vocab": "http://underlay.org/ns/",
+	key: { "@type": "@id" },
+	datatype: { "@type": "@id" },
+	options: {
+		"@reverse": "source",
+	},
+	components: {
+		"@reverse": "source",
+	},
+}
+
 export const isReference = (expression: Type): expression is ReferenceType =>
 	expression.hasOwnProperty("id")
 

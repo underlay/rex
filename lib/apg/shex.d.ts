@@ -6,6 +6,7 @@ import { Label, Value } from "./schema.js";
 import { LabelShape } from "./reference.js";
 export declare function makeShExSchema(labels: Label[]): [ShapeMap, ShExParser.Schema];
 declare type ShapeMap = Map<string, LabelShape>;
+export declare function parseSchemaString(input: string, schemaSchema: Label[]): Label[];
 export declare function parseSchema(store: Store, schemaSchema: Label[]): Label[];
 export declare function parse(store: Store, labels: Label[]): Generator<[Label, Generator<[Subject<D>, Either.Either<ShExCore.FailureResult, Value>]>], void, undefined>;
 export {};

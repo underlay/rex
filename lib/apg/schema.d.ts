@@ -41,6 +41,23 @@ export declare type Option = {
     type: "option";
     value: Type;
 };
+export declare const context: {
+    id: string;
+    type: string;
+    "@vocab": string;
+    key: {
+        "@type": string;
+    };
+    datatype: {
+        "@type": string;
+    };
+    options: {
+        "@reverse": string;
+    };
+    components: {
+        "@reverse": string;
+    };
+};
 export declare const isReference: (expression: Type) => expression is ReferenceType;
 export declare const iriHasPattern: (expression: IriType) => expression is {
     type: "iri";
