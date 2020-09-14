@@ -11,15 +11,15 @@ export const namePlaceholder = "name or http://..."
 
 const baseURL = "https://regexper.com/#"
 
-export const namespacePattern = /^[a-z0-9]+:[a-zA-Z_\-\/\.]+(?:#|\/)$/
+export const namespacePattern = /^[a-z0-9]+:[a-zA-Z0-9_\-\/\.]+(?:#|\/)$/
 export const namespacePatternURL =
 	baseURL + encodeURIComponent(namespacePattern.source)
 
-const propertyPattern = /^[a-z0-9]+:[a-zA-Z_\-\/\.]+(?:#|\/)[a-zA-Z_\-\/\.]+$/
+const propertyPattern = /^[a-z0-9]+:[a-zA-Z0-9_\-\/\.]+(?:#|\/)[a-zA-Z_\-\/\.]+$/
 export const propertyPatternURL =
 	baseURL + encodeURIComponent(propertyPattern.source)
 
-const namePattern = /^[a-zA-Z_\-\/\.]+$/
+const namePattern = /^[a-zA-Z0-9_\-\/\.]+$/
 export const namePatternURL =
 	baseURL + encodeURIComponent(propertyPattern.source)
 
