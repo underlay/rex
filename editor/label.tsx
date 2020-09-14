@@ -16,6 +16,7 @@ import { SelectType } from "./type"
 export function LabelConfig(props: {
 	labels: Map<string, string>
 	namespace: null | string
+	clean: boolean
 	index: number
 	id: string
 	keyName: string
@@ -80,6 +81,7 @@ export function LabelConfig(props: {
 			<SelectType
 				labels={props.labels}
 				namespace={props.namespace}
+				clean={props.clean}
 				value={props.value}
 				onChange={handleValueChange}
 				error={error}
@@ -87,7 +89,7 @@ export function LabelConfig(props: {
 				<label className="key">
 					<span>Key</span>
 					<input
-						autoFocus={true}
+						autoFocus={!props.clean}
 						className="uri"
 						type="text"
 						value={key}

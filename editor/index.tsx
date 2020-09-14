@@ -28,6 +28,7 @@ const defaultNamespace = "http://example.com/ns/"
 let labelId = 0
 
 function Index({}) {
+	const [clean, setClean] = React.useState(true)
 	const [namespace, setNamespace] = React.useState<null | string>(
 		defaultNamespace
 	)
@@ -96,6 +97,7 @@ function Index({}) {
 			compactLabelWithNamespace(labels, namespace)
 			setNamespace(namespace)
 			setLabels(labels)
+			setClean(true)
 			setLabelMap(new Map(labels.map((label) => [label.id, label.key])))
 		},
 		[]
@@ -169,12 +171,14 @@ function Index({}) {
 							value={label.value}
 							labels={labelMap}
 							namespace={namespace}
+							clean={clean}
 							onChange={(label) => {
 								if (label.key !== labels[index].key) {
 									setLabelMap(new Map(labelMap).set(label.id, label.key))
 								}
 								const nextLabels = setArrayIndex(labels, label, index)
 								setLabels(nextLabels)
+								setClean(false)
 							}}
 							onRemove={handleRemove}
 						/>

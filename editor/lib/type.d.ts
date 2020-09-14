@@ -5,6 +5,7 @@ export declare function SelectType(props: {
     error: React.ReactNode;
     labels: Map<string, string>;
     namespace: null | string;
+    clean: boolean;
     value: Type;
     onChange: (value: Type) => void;
 }): JSX.Element;

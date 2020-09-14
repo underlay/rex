@@ -7,6 +7,7 @@ export declare const makeOptionId: (options: Option[]) => OptionId[];
 export declare function CoproductConfig(props: {
     labels: Map<string, string>;
     namespace: null | string;
+    clean: boolean;
     options: OptionId[];
     onChange: (type: CoproductType) => void;
 }): JSX.Element;

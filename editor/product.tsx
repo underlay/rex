@@ -34,6 +34,7 @@ export const makeComponentId = (components: Component[]): ComponentId[] => {
 export function ProductConfig(props: {
 	labels: Map<string, string>
 	namespace: null | string
+	clean: boolean
 	components: ComponentId[]
 	onChange: (type: ProductType) => void
 }) {
@@ -89,6 +90,7 @@ export function ProductConfig(props: {
 					index={index}
 					labels={props.labels}
 					namespace={props.namespace}
+					clean={props.clean}
 					onChange={handleChange}
 					onRemove={handleRemove}
 				/>
@@ -100,6 +102,7 @@ export function ProductConfig(props: {
 function ComponentConfig(props: {
 	labels: Map<string, string>
 	namespace: null | string
+	clean: boolean
 	index: number
 	id: string
 	keyName: string
@@ -169,6 +172,7 @@ function ComponentConfig(props: {
 			<SelectType
 				labels={props.labels}
 				namespace={props.namespace}
+				clean={props.clean}
 				value={props.value}
 				onChange={handleTypeChange}
 				error={error}
@@ -176,7 +180,7 @@ function ComponentConfig(props: {
 				<label className="key">
 					<span>Key</span>
 					<input
-						autoFocus={true}
+						autoFocus={!props.clean}
 						className="uri"
 						type="text"
 						value={key}
