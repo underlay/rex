@@ -52,6 +52,7 @@ const Style: cytoscape.Stylesheet[] = [
 		style: {
 			shape: "octagon",
 			"background-color": "aliceblue",
+			"border-color": "lightslategrey",
 		},
 	},
 	{
@@ -59,13 +60,15 @@ const Style: cytoscape.Stylesheet[] = [
 		style: {
 			shape: "round-octagon",
 			"background-color": "lavender",
+			"border-color": "#9696ae",
 		},
 	},
 	{
 		selector: "node.nil",
 		style: {
 			shape: "ellipse",
-			"background-color": "grey",
+			"background-color": "#ccc",
+			"border-color": "grey",
 		},
 	},
 	{
@@ -80,32 +83,43 @@ const Style: cytoscape.Stylesheet[] = [
 		style: {
 			width: 4,
 			"font-size": 10,
-			"line-color": "#ccc",
 			"text-background-color": "whitesmoke",
 			"text-background-padding": "4",
 			"text-background-opacity": 1,
 			"font-family": "monospace",
-			"curve-style": "bezier",
-			"target-arrow-color": "#ccc",
+			"curve-style": "straight",
+			"source-arrow-shape": "tee",
 			"target-arrow-shape": "triangle",
 			"text-rotation": ("autorotate" as unknown) as undefined,
 		},
 	},
 	{
 		selector: "edge.definition",
-		style: { label: "[value]", "line-style": "solid" },
+		style: {
+			label: "[value]",
+			"line-style": "solid",
+			"line-color": "#ccc",
+			"target-arrow-color": "#ccc",
+			"source-arrow-color": "#ccc",
+		},
 	},
 	{
 		selector: "edge.component",
 		style: {
 			"line-style": "dashed",
 			label: "data(key)",
+			"line-color": "lightslategray",
+			"target-arrow-color": "lightslategray",
+			"source-arrow-color": "lightslategray",
 		},
 	},
 	{
 		selector: "edge.option",
 		style: {
 			"line-style": "dotted",
+			"line-color": "#9696ae",
+			"target-arrow-color": "#9696ae",
+			"source-arrow-color": "#9696ae",
 		},
 	},
 ]
