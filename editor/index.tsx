@@ -5,7 +5,7 @@ import jsonld from "jsonld"
 
 import "../apg/schema.schema.jsonld"
 
-import { Label, context, Type, isReference } from "../lib/apg/schema.js"
+import { Label, context } from "../lib/apg/schema.js"
 import { parseSchemaString } from "../lib/apg/shex.js"
 
 import {
@@ -28,31 +28,33 @@ const defaultNamespace = "http://example.com/ns/"
 let labelId = 0
 
 function Index({}) {
-	const [clean, setClean] = React.useState(true)
+	const [clean, setClean] = React.useState(false)
 	const [namespace, setNamespace] = React.useState<null | string>(
 		defaultNamespace
 	)
 	const [labels, setLabels] = React.useState<Label[]>([])
-	const [labelMap, setLabelMap] = React.useState<Map<string, string>>(new Map())
+	const labelMap = React.useRef<Map<string, string>>(new Map())
 
 	const handleClick = React.useCallback(
-		({}) =>
-			setLabels([
-				...labels,
-				{
-					id: `_:l${labelId++}`,
-					type: "label",
-					key: "",
-					value: { type: "nil" },
-				},
-			]),
+		({}) => {
+			const id = `_:l${labelId++}`
+			const label: Label = {
+				id,
+				type: "label",
+				key: "",
+				value: { type: "nil" },
+			}
+			setLabels([...labels, label])
+			labelMap.current.set(id, "")
+		},
 		[labels]
 	)
 
 	const handleRemove = React.useCallback(
 		(index: number) => {
 			const nextLabels = labels.slice()
-			const [] = nextLabels.splice(index, 1)
+			const [{ id }] = nextLabels.splice(index, 1)
+			labelMap.current.delete(id)
 			setLabels(nextLabels)
 		},
 		[labels]
@@ -98,7 +100,7 @@ function Index({}) {
 			setNamespace(namespace)
 			setLabels(labels)
 			setClean(true)
-			setLabelMap(new Map(labels.map((label) => [label.id, label.key])))
+			labelMap.current = new Map(labels.map((label) => [label.id, label.key]))
 		},
 		[]
 	)
@@ -169,12 +171,12 @@ function Index({}) {
 							id={label.id}
 							keyName={label.key}
 							value={label.value}
-							labels={labelMap}
+							labels={labelMap.current}
 							namespace={namespace}
 							clean={clean}
 							onChange={(label) => {
 								if (label.key !== labels[index].key) {
-									setLabelMap(new Map(labelMap).set(label.id, label.key))
+									labelMap.current.set(label.id, label.key)
 								}
 								const nextLabels = setArrayIndex(labels, label, index)
 								setLabels(nextLabels)

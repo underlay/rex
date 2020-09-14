@@ -113,6 +113,7 @@ function TypeConfig(props: {
 			<ReferenceConfig
 				labels={props.labels}
 				namespace={props.namespace}
+				clean={props.clean}
 				id={props.value.id}
 				onChange={props.onChange}
 			/>
@@ -156,18 +157,43 @@ function TypeConfig(props: {
 function ReferenceConfig(props: {
 	labels: Map<string, string>
 	namespace: null | string
+	clean: boolean
 	id: string
 	onChange: (value: ReferenceType) => void
 }) {
+	// const handleChange = React.useCallback(
+	// 	({ target: { value } }: React.ChangeEvent<HTMLSelectElement>) =>
+	// 		props.onChange({ id: value }),
+	// 	[props.onChange]
+	// )
 	const handleChange = React.useCallback(
-		({ target: { value } }: React.ChangeEvent<HTMLSelectElement>) =>
-			props.onChange({ id: value }),
+		({ target: { checked, value } }: React.ChangeEvent<HTMLInputElement>) => {
+			if (checked) {
+				props.onChange({ id: value })
+			}
+		},
 		[props.onChange]
 	)
 
 	return (
 		<div className="reference">
-			<label>
+			<details open={!props.clean}>
+				<summary>Label</summary>
+				<form>
+					{Array.from(props.labels).map(([id, key]) => (
+						<label key={id}>
+							<input
+								type="radio"
+								value={id}
+								checked={props.id === id}
+								onChange={handleChange}
+							/>
+							<span>{key}</span>
+						</label>
+					))}
+				</form>
+			</details>
+			{/* <label>
 				<span>Label</span>
 				<select value={props.id} onChange={handleChange}>
 					{Array.from(props.labels).map(([id, key]) => (
@@ -176,7 +202,7 @@ function ReferenceConfig(props: {
 						</option>
 					))}
 				</select>
-			</label>
+			</label> */}
 		</div>
 	)
 }

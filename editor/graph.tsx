@@ -87,7 +87,7 @@ const Style: cytoscape.Stylesheet[] = [
 			"text-background-padding": "4",
 			"text-background-opacity": 1,
 			"font-family": "monospace",
-			"curve-style": "straight",
+			"curve-style": "bezier",
 			"source-arrow-shape": "tee",
 			"target-arrow-shape": "triangle",
 			"text-rotation": ("autorotate" as unknown) as undefined,
@@ -303,9 +303,12 @@ export function Graph(props: { labels: Label[] }) {
 			const nextCy = cytoscape({
 				container,
 				style: Style,
-				minZoom: 0.2,
-				maxZoom: 2,
+				userPanningEnabled: false,
+				userZoomingEnabled: false,
+				autoungrabify: true,
 				zoom: 1,
+				maxZoom: 2,
+				minZoom: 0.5,
 			})
 
 			setCy(nextCy)
