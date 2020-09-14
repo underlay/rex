@@ -14,13 +14,14 @@
 		<style>
 			main {
 				padding-right: 0.5em;
-				min-width: max-content;
+				width: max-content;
 			}
 
 			header {
 				display: flex;
 				align-items: baseline;
 				margin-left: 0.5em;
+				margin-right: 0.5em;
 				min-width: max-content;
 			}
 
@@ -43,6 +44,8 @@
 
 			div.panels {
 				display: flex;
+				justify-content: space-between;
+				width: max-content;
 			}
 
 			div.panels section.editor {
@@ -119,13 +122,15 @@
 
 			section.graph {
 				padding: 0.5em;
+				width: 720px;
+				height: 720px;
 			}
 
 			section.graph div.container {
 				border: 1px solid #ccc;
 				background-color: whitesmoke;
-				width: 640px;
-				height: 640px;
+				min-width: 720px;
+				height: 720px;
 			}
 		</style>
 		<style>
