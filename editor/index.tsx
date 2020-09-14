@@ -13,6 +13,7 @@ import {
 	validateKey,
 	findError,
 	compactLabelWithNamespace,
+	isImport,
 } from "./utils"
 import { LabelConfig } from "./label"
 import { Namespace } from "./namespace"
@@ -28,12 +29,10 @@ const defaultNamespace = "http://example.com/ns/"
 let labelId = 0
 
 function Index({}) {
-	const [clean, setClean] = React.useState(false)
 	const [namespace, setNamespace] = React.useState<null | string>(
 		defaultNamespace
 	)
 	const [labels, setLabels] = React.useState<Label[]>([])
-	// const labelMap = React.useRef<Map<string, string>>(new Map())
 	const labelMap = React.useMemo<Map<string, string>>(
 		() => new Map(labels.map((label) => [label.id, label.key])),
 		[labels]
@@ -49,7 +48,6 @@ function Index({}) {
 				value: { type: "nil" },
 			}
 			setLabels([...labels, label])
-			// labelMap.current.set(id, "")
 		},
 		[labels]
 	)
@@ -58,7 +56,6 @@ function Index({}) {
 		(index: number) => {
 			const nextLabels = labels.slice()
 			const [{ id }] = nextLabels.splice(index, 1)
-			// labelMap.current.delete(id)
 			setLabels(nextLabels)
 		},
 		[labels]
@@ -102,8 +99,8 @@ function Index({}) {
 		(labels: Label[], namespace: null | string) => {
 			compactLabelWithNamespace(labels, namespace)
 			setNamespace(namespace)
+			isImport.add(labels)
 			setLabels(labels)
-			setClean(true)
 		},
 		[]
 	)
@@ -134,10 +131,24 @@ function Index({}) {
 	}, [labels])
 
 	const handleLoadExampleClick = React.useCallback(({}) => {
-		schemaSchemaFile.then(({ "@graph": schemaSchema }: { "@graph": Label[] }) =>
-			handleImport(schemaSchema, "http://underlay.org/ns/")
+		schemaSchemaFile.then(
+			({ "@graph": schemaSchema }: { "@graph": Label[] }) => {
+				console.log("loading example")
+				handleImport(schemaSchema, "http://underlay.org/ns/")
+			}
 		)
 	}, [])
+
+	const handleLabelChange = React.useCallback(
+		(label: Label, index: number) => {
+			console.log("handle label change", label, index)
+			const nextLabels = setArrayIndex(labels, label, index)
+			setLabels(nextLabels)
+		},
+		[labels]
+	)
+
+	const autoFocus = !isImport.has(labels)
 
 	return (
 		<React.Fragment>
@@ -176,15 +187,8 @@ function Index({}) {
 							value={label.value}
 							labels={labelMap}
 							namespace={namespace}
-							clean={clean}
-							onChange={(label) => {
-								// if (label.key !== labels[index].key) {
-								// 	labelMap.current.set(label.id, label.key)
-								// }
-								const nextLabels = setArrayIndex(labels, label, index)
-								setLabels(nextLabels)
-								setClean(false)
-							}}
+							autoFocus={autoFocus}
+							onChange={(label) => handleLabelChange(label, index)}
 							onRemove={handleRemove}
 						/>
 					))}

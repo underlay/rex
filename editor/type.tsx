@@ -50,7 +50,7 @@ export function SelectType(props: {
 	error: React.ReactNode
 	labels: Map<string, string>
 	namespace: null | string
-	clean: boolean
+	autoFocus: boolean
 	value: Type
 	onChange: (value: Type) => void
 }) {
@@ -93,7 +93,7 @@ export function SelectType(props: {
 			<TypeConfig
 				labels={props.labels}
 				namespace={props.namespace}
-				clean={props.clean}
+				autoFocus={props.autoFocus}
 				value={props.value}
 				onChange={props.onChange}
 			/>
@@ -104,7 +104,7 @@ export function SelectType(props: {
 function TypeConfig(props: {
 	labels: Map<string, string>
 	namespace: null | string
-	clean: boolean
+	autoFocus: boolean
 	value: Type
 	onChange: (value: Type) => void
 }) {
@@ -113,7 +113,7 @@ function TypeConfig(props: {
 			<ReferenceConfig
 				labels={props.labels}
 				namespace={props.namespace}
-				clean={props.clean}
+				autoFocus={props.autoFocus}
 				id={props.value.id}
 				onChange={props.onChange}
 			/>
@@ -134,7 +134,7 @@ function TypeConfig(props: {
 			<ProductConfig
 				labels={props.labels}
 				namespace={props.namespace}
-				clean={props.clean}
+				autoFocus={props.autoFocus}
 				components={makeComponentId(props.value.components)}
 				onChange={props.onChange}
 			/>
@@ -144,7 +144,7 @@ function TypeConfig(props: {
 			<CoproductConfig
 				labels={props.labels}
 				namespace={props.namespace}
-				clean={props.clean}
+				autoFocus={props.autoFocus}
 				options={makeOptionId(props.value.options)}
 				onChange={props.onChange}
 			/>
@@ -157,7 +157,7 @@ function TypeConfig(props: {
 function ReferenceConfig(props: {
 	labels: Map<string, string>
 	namespace: null | string
-	clean: boolean
+	autoFocus: boolean
 	id: string
 	onChange: (value: ReferenceType) => void
 }) {
@@ -177,7 +177,7 @@ function ReferenceConfig(props: {
 
 	return (
 		<div className="reference">
-			<details open={!props.clean}>
+			<details open={props.autoFocus}>
 				<summary>Label</summary>
 				<form>
 					{Array.from(props.labels).map(([id, key]) => (

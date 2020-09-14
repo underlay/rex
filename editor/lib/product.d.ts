@@ -7,7 +7,7 @@ export declare const makeComponentId: (components: Component[]) => ComponentId[]
 export declare function ProductConfig(props: {
     labels: Map<string, string>;
     namespace: null | string;
-    clean: boolean;
+    autoFocus: boolean;
     components: ComponentId[];
     onChange: (type: ProductType) => void;
 }): JSX.Element;

@@ -11,3 +11,4 @@ export declare function checkDuplicate(id: string, key: string, labels: Map<stri
 export declare function findError(type: Type, namespace: null | string): null | Error;
 export declare function compactLabelWithNamespace(labels: Label[], namespace: null | string): void;
 export declare const xsdDatatypes: string[];
+export declare const isImport: WeakSet<Label[]>;

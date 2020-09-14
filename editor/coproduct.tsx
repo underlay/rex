@@ -25,7 +25,7 @@ export const makeOptionId = (options: Option[]): OptionId[] => {
 export function CoproductConfig(props: {
 	labels: Map<string, string>
 	namespace: null | string
-	clean: boolean
+	autoFocus: boolean
 	options: OptionId[]
 	onChange: (type: CoproductType) => void
 }) {
@@ -80,7 +80,7 @@ export function CoproductConfig(props: {
 					index={index}
 					labels={props.labels}
 					namespace={props.namespace}
-					clean={props.clean}
+					autoFocus={props.autoFocus}
 					onChange={handleChange}
 					onRemove={handleRemove}
 				/>
@@ -92,7 +92,7 @@ export function CoproductConfig(props: {
 function OptionConfig(props: {
 	labels: Map<string, string>
 	namespace: null | string
-	clean: boolean
+	autoFocus: boolean
 	index: number
 	id: string
 	value: Type
@@ -120,7 +120,7 @@ function OptionConfig(props: {
 			<SelectType
 				labels={props.labels}
 				namespace={props.namespace}
-				clean={props.clean}
+				autoFocus={props.autoFocus}
 				value={props.value}
 				onChange={handleTypeChange}
 				error={null}

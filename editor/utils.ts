@@ -106,3 +106,5 @@ export const xsdDatatypes: string[] = [
 	IRIs.xsd.dateTime,
 	IRIs.xsd.boolean,
 ]
+
+export const isImport: WeakSet<Label[]> = new WeakSet()

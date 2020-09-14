@@ -16,7 +16,7 @@ import { SelectType } from "./type"
 export function LabelConfig(props: {
 	labels: Map<string, string>
 	namespace: null | string
-	clean: boolean
+	autoFocus: boolean
 	index: number
 	id: string
 	keyName: string
@@ -24,6 +24,7 @@ export function LabelConfig(props: {
 	onChange: (label: Label) => void
 	onRemove: (index: number) => void
 }) {
+	const autoFocus = React.useMemo(() => props.autoFocus, [])
 	const handleChange = React.useCallback(
 		(key: string, value: Type) => {
 			props.onChange({ type: "label", id: props.id, key, value })
@@ -78,14 +79,14 @@ export function LabelConfig(props: {
 
 	return (
 		<div className="label">
-			<details open={true}>
+			<details open={autoFocus}>
 				<summary>
 					<h2>{props.keyName}</h2>
 				</summary>
 				<SelectType
 					labels={props.labels}
 					namespace={props.namespace}
-					clean={props.clean}
+					autoFocus={props.autoFocus}
 					value={props.value}
 					onChange={handleValueChange}
 					error={error}
@@ -93,7 +94,7 @@ export function LabelConfig(props: {
 					<label className="key">
 						<span>Key</span>
 						<input
-							autoFocus={props.clean}
+							autoFocus={props.autoFocus}
 							className="uri"
 							type="text"
 							value={key}
