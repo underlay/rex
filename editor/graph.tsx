@@ -7,215 +7,34 @@ import { Label, Type, isReference, LiteralType } from "../lib/apg/schema.js"
 import { makeComponentId } from "./product"
 import { makeOptionId } from "./coproduct"
 import { xsdDatatypes } from "./utils"
-
-export const Layout: cytoscape.LayoutOptions = {
-	name: "breadthfirst",
-	padding: 12,
-	animate: false,
-	fit: true,
-	spacingFactor: 1.5,
-	circle: false,
-	directed: true,
-}
-
-const Style: cytoscape.Stylesheet[] = [
-	{
-		selector: "node",
-		style: {
-			"border-width": 1,
-			"border-style": "solid",
-			"border-color": "#95a482",
-		},
-	},
-	{
-		selector: "node.label",
-		style: {
-			width: "data(width)",
-			height: "data(height)",
-			"background-image": "data(svg)",
-			shape: "round-rectangle",
-			"background-color": "seashell",
-		},
-	},
-	{
-		selector: "node.literal",
-		style: {
-			width: "data(width)",
-			height: "data(height)",
-			"background-image": "data(svg)",
-			shape: "rectangle",
-			"background-color": "lightyellow",
-		},
-	},
-	{
-		selector: "node.product",
-		style: {
-			shape: "octagon",
-			"background-color": "aliceblue",
-			"border-color": "lightslategrey",
-		},
-	},
-	{
-		selector: "node.coproduct",
-		style: {
-			shape: "round-octagon",
-			"background-color": "lavender",
-			"border-color": "#9696ae",
-		},
-	},
-	{
-		selector: "node.nil",
-		style: {
-			shape: "ellipse",
-			"background-color": "#ccc",
-			"border-color": "grey",
-		},
-	},
-	{
-		selector: "node.iri",
-		style: {
-			shape: "diamond",
-			"background-color": "darkseagreen",
-		},
-	},
-	{
-		selector: "edge",
-		style: {
-			width: 4,
-			"font-size": 10,
-			"text-background-color": "whitesmoke",
-			"text-background-padding": "4",
-			"text-background-opacity": 1,
-			"font-family": "monospace",
-			"curve-style": "bezier",
-			"source-arrow-shape": "tee",
-			"target-arrow-shape": "triangle",
-			"text-rotation": ("autorotate" as unknown) as undefined,
-		},
-	},
-	{
-		selector: "edge.definition",
-		style: {
-			label: "[value]",
-			"line-style": "solid",
-			"line-color": "#ccc",
-			"target-arrow-color": "#ccc",
-			"source-arrow-color": "#ccc",
-		},
-	},
-	{
-		selector: "edge.component",
-		style: {
-			"line-style": "dashed",
-			label: "data(key)",
-			"line-color": "lightslategray",
-			"target-arrow-color": "lightslategray",
-			"source-arrow-color": "lightslategray",
-		},
-	},
-	{
-		selector: "edge.option",
-		style: {
-			"line-style": "dotted",
-			"line-color": "#9696ae",
-			"target-arrow-color": "#9696ae",
-			"source-arrow-color": "#9696ae",
-		},
-	},
-]
-
-let nodeId = 0
-function makeTypeElement(
-	type: Type,
-	elements: cytoscape.ElementDefinition[]
-): string {
-	if (isReference(type)) {
-		return type.id.slice(2)
-	} else if (type.type === "nil") {
-		const id = `b${nodeId++}`
-		elements.push({
-			group: "nodes",
-			data: { type: type.type, id },
-			classes: "nil",
-		})
-		return id
-	} else if (type.type === "iri") {
-		const id = `b${nodeId++}`
-		elements.push({
-			group: "nodes",
-			data: { type: type.type, id },
-			classes: "iri",
-		})
-		return id
-	} else if (type.type === "literal") {
-		const id = `b${nodeId++}`
-		const background = makeLiteralBackground(type)
-		elements.push({
-			group: "nodes",
-			data: {
-				type: type.type,
-				id,
-				datatype: type.datatype,
-				...background,
-			},
-			classes: "literal",
-		})
-		return id
-	} else if (type.type === "product") {
-		const id = `b${nodeId++}`
-		elements.push({
-			group: "nodes",
-			data: { type: type.type, id },
-			classes: "product",
-		})
-		for (const component of makeComponentId(type.components)) {
-			const target = makeTypeElement(component.value, elements)
-			elements.push({
-				group: "edges",
-				data: {
-					type: component.type,
-					id: component.id.slice(2),
-					key: component.key,
-					source: id,
-					target: target,
-				},
-				classes: "component",
-			})
-		}
-		return id
-	} else if (type.type === "coproduct") {
-		const id = `b${nodeId++}`
-		elements.push({
-			group: "nodes",
-			data: { type: type.type, id },
-			classes: "coproduct",
-		})
-		for (const option of makeOptionId(type.options)) {
-			const target = makeTypeElement(option.value, elements)
-			elements.push({
-				group: "edges",
-				data: {
-					type: option.type,
-					id: option.id.slice(2),
-					source: id,
-					target: target,
-				},
-				classes: "option",
-			})
-		}
-		return id
-	} else {
-		throw new Error("Invalid type value")
-	}
-}
+import { Style, Layout } from "./style"
 
 const FONT_FAMILY = "monospace"
 const FONT_SIZE = 12
 const CHAR = 7.2
 const LINE_HEIGHT = 20
 
+const DataURIPrefix = "data:image/svg+xml;utf8,"
+
+const makeBackground = (content: string, width: number, height: number) => ({
+	width,
+	height,
+	svg:
+		DataURIPrefix +
+		encodeURIComponent(`<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE svg>
+<svg width="${width}" height="${height}"
+viewBox="0 0 ${width} ${height}"
+fill="none"
+xmlns="http://www.w3.org/2000/svg"
+font-size="${FONT_SIZE}"
+font-family="${FONT_FAMILY}">
+<style>text { fill: black }</style>
+${content}
+</svg>`),
+})
+
 function makeLabelBackground(label: Label) {
-	const width = CHAR * label.key.length + 8,
+	const width = Math.max(CHAR * label.key.length + 8, 20),
 		height = LINE_HEIGHT
 
 	return makeBackground(
@@ -240,27 +59,6 @@ function makeLiteralBackground(literal: LiteralType) {
 	)
 }
 
-const DataURIPrefix = "data:image/svg+xml;utf8,"
-
-const makeBackground = (content: string, width: number, height: number) => ({
-	svg:
-		DataURIPrefix +
-		encodeURIComponent(`<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE svg>
-<svg width="${width}" height="${height}"
-viewBox="0 0 ${width} ${height}"
-fill="none"
-xmlns="http://www.w3.org/2000/svg"
-font-size="${FONT_SIZE}"
-font-family="${FONT_FAMILY}">
-<style>
-text { fill: black }
-</style>
-${content}
-</svg>`),
-	width,
-	height,
-})
-
 function makeElements(labels: Label[]): cytoscape.ElementDefinition[] {
 	const elements: cytoscape.ElementDefinition[] = []
 	for (const label of labels) {
@@ -268,17 +66,17 @@ function makeElements(labels: Label[]): cytoscape.ElementDefinition[] {
 		const background = makeLabelBackground(label)
 		elements.push({
 			group: "nodes",
-			data: { id, key: label.key, ...background },
 			classes: "label",
+			data: { id, key: label.key, ...background },
 		})
 
-		const target = makeTypeElement(label.value, elements)
+		const target = makeTypeElement(id, label.value, elements)
 
 		elements.push({
 			group: "edges",
 			classes: "definition",
 			data: {
-				id: `d${nodeId++}`,
+				id: `${id}-def`,
 				key: label.key,
 				source: id,
 				target: target,
@@ -286,6 +84,102 @@ function makeElements(labels: Label[]): cytoscape.ElementDefinition[] {
 		})
 	}
 	return elements
+}
+
+function makeTypeElement(
+	parent: string,
+	type: Type,
+	elements: cytoscape.ElementDefinition[]
+): string {
+	const id = `${parent}-val`
+	if (isReference(type)) {
+		elements.push(
+			{
+				group: "nodes",
+				classes: "reference",
+				data: { type: "reference", id },
+			},
+			{
+				group: "edges",
+				classes: "reference",
+				data: {
+					type: "reference",
+					id: `${parent}-ref`,
+					source: id,
+					target: type.id.slice(2),
+				},
+			}
+		)
+	} else if (type.type === "nil") {
+		const id = `${parent}-val`
+		elements.push({
+			group: "nodes",
+			classes: "nil",
+			data: { type: type.type, id },
+		})
+	} else if (type.type === "iri") {
+		elements.push({
+			group: "nodes",
+			classes: "iri",
+			data: { type: type.type, id },
+		})
+	} else if (type.type === "literal") {
+		const background = makeLiteralBackground(type)
+		elements.push({
+			group: "nodes",
+			classes: "literal",
+			data: {
+				type: type.type,
+				id,
+				datatype: type.datatype,
+				...background,
+			},
+		})
+	} else if (type.type === "product") {
+		elements.push({
+			group: "nodes",
+			classes: "product",
+			data: { type: type.type, id },
+		})
+		for (const component of makeComponentId(type.components)) {
+			const componentId = component.id.slice(2)
+			const target = makeTypeElement(componentId, component.value, elements)
+			elements.push({
+				group: "edges",
+				classes: "component",
+				data: {
+					type: component.type,
+					id: componentId,
+					key: component.key,
+					source: id,
+					target: target,
+				},
+			})
+		}
+	} else if (type.type === "coproduct") {
+		elements.push({
+			group: "nodes",
+			classes: "coproduct",
+			data: { type: type.type, id },
+		})
+		for (const option of makeOptionId(type.options)) {
+			const optionId = option.id.slice(2)
+			const target = makeTypeElement(optionId, option.value, elements)
+			elements.push({
+				group: "edges",
+				classes: "option",
+				data: {
+					type: option.type,
+					id: optionId,
+					source: id,
+					target: target,
+				},
+			})
+		}
+	} else {
+		throw new Error("Invalid type value")
+	}
+	return id
 }
 
 export function Graph(props: { labels: Label[] }) {
@@ -321,9 +215,8 @@ export function Graph(props: { labels: Label[] }) {
 			cy.batch(() => {
 				cy.elements().remove()
 				cy.add(makeElements(props.labels))
+				cy.elements("node, edge").layout(Layout).run()
 			})
-
-			cy.layout(Layout).run()
 		}
 	}, [props.labels, cy])
 

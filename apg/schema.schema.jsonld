@@ -3,8 +3,12 @@
 		"id": "@id",
 		"type": "@type",
 		"@vocab": "http://underlay.org/ns/",
-		"key": { "@type": "@id" },
-		"datatype": { "@type": "@id" },
+		"key": {
+			"@type": "@id"
+		},
+		"datatype": {
+			"@type": "@id"
+		},
 		"options": {
 			"@reverse": "source"
 		},
@@ -23,7 +27,9 @@
 					{
 						"type": "component",
 						"key": "http://underlay.org/ns/key",
-						"value": { "type": "iri" }
+						"value": {
+							"type": "iri"
+						}
 					},
 					{
 						"type": "component",
@@ -31,12 +37,42 @@
 						"value": {
 							"type": "coproduct",
 							"options": [
-								{ "type": "option", "value": { "id": "_:label" } },
-								{ "type": "option", "value": { "id": "_:nil" } },
-								{ "type": "option", "value": { "id": "_:iri" } },
-								{ "type": "option", "value": { "id": "_:literal" } },
-								{ "type": "option", "value": { "id": "_:product" } },
-								{ "type": "option", "value": { "id": "_:coproduct" } }
+								{
+									"type": "option",
+									"value": {
+										"id": "_:label"
+									}
+								},
+								{
+									"type": "option",
+									"value": {
+										"id": "_:nil"
+									}
+								},
+								{
+									"type": "option",
+									"value": {
+										"id": "_:iri"
+									}
+								},
+								{
+									"type": "option",
+									"value": {
+										"id": "_:literal"
+									}
+								},
+								{
+									"type": "option",
+									"value": {
+										"id": "_:product"
+									}
+								},
+								{
+									"type": "option",
+									"value": {
+										"id": "_:coproduct"
+									}
+								}
 							]
 						}
 					}
@@ -47,7 +83,9 @@
 			"id": "_:nil",
 			"type": "label",
 			"key": "http://underlay.org/ns/nil",
-			"value": { "type": "nil" }
+			"value": {
+				"type": "nil"
+			}
 		},
 		{
 			"id": "_:iri",
@@ -56,7 +94,12 @@
 			"value": {
 				"type": "coproduct",
 				"options": [
-					{ "type": "option", "value": { "type": "nil" } },
+					{
+						"type": "option",
+						"value": {
+							"type": "nil"
+						}
+					},
 					{
 						"type": "option",
 						"value": {
@@ -99,7 +142,9 @@
 								{
 									"type": "component",
 									"key": "http://underlay.org/ns/datatype",
-									"value": { "type": "iri" }
+									"value": {
+										"type": "iri"
+									}
 								}
 							]
 						}
@@ -112,7 +157,9 @@
 								{
 									"type": "component",
 									"key": "http://underlay.org/ns/datatype",
-									"value": { "type": "iri" }
+									"value": {
+										"type": "iri"
+									}
 								},
 								{
 									"type": "component",
@@ -140,7 +187,9 @@
 			"id": "_:product",
 			"type": "label",
 			"key": "http://underlay.org/ns/product",
-			"value": { "type": "nil" }
+			"value": {
+				"type": "nil"
+			}
 		},
 		{
 			"id": "_:component",
@@ -152,12 +201,16 @@
 					{
 						"type": "component",
 						"key": "http://underlay.org/ns/source",
-						"value": { "id": "_:product" }
+						"value": {
+							"id": "_:product"
+						}
 					},
 					{
 						"type": "component",
 						"key": "http://underlay.org/ns/key",
-						"value": { "type": "iri" }
+						"value": {
+							"type": "iri"
+						}
 					},
 					{
 						"type": "component",
@@ -165,12 +218,42 @@
 						"value": {
 							"type": "coproduct",
 							"options": [
-								{ "type": "option", "value": { "id": "_:label" } },
-								{ "type": "option", "value": { "id": "_:nil" } },
-								{ "type": "option", "value": { "id": "_:iri" } },
-								{ "type": "option", "value": { "id": "_:literal" } },
-								{ "type": "option", "value": { "id": "_:product" } },
-								{ "type": "option", "value": { "id": "_:coproduct" } }
+								{
+									"type": "option",
+									"value": {
+										"id": "_:label"
+									}
+								},
+								{
+									"type": "option",
+									"value": {
+										"id": "_:nil"
+									}
+								},
+								{
+									"type": "option",
+									"value": {
+										"id": "_:iri"
+									}
+								},
+								{
+									"type": "option",
+									"value": {
+										"id": "_:literal"
+									}
+								},
+								{
+									"type": "option",
+									"value": {
+										"id": "_:product"
+									}
+								},
+								{
+									"type": "option",
+									"value": {
+										"id": "_:coproduct"
+									}
+								}
 							]
 						}
 					}
@@ -181,7 +264,9 @@
 			"id": "_:coproduct",
 			"type": "label",
 			"key": "http://underlay.org/ns/coproduct",
-			"value": { "type": "nil" }
+			"value": {
+				"type": "nil"
+			}
 		},
 		{
 			"id": "_:option",
@@ -193,7 +278,9 @@
 					{
 						"type": "component",
 						"key": "http://underlay.org/ns/source",
-						"value": { "id": "_:coproduct" }
+						"value": {
+							"id": "_:coproduct"
+						}
 					},
 					{
 						"type": "component",
@@ -201,12 +288,42 @@
 						"value": {
 							"type": "coproduct",
 							"options": [
-								{ "type": "option", "value": { "id": "_:label" } },
-								{ "type": "option", "value": { "id": "_:nil" } },
-								{ "type": "option", "value": { "id": "_:iri" } },
-								{ "type": "option", "value": { "id": "_:literal" } },
-								{ "type": "option", "value": { "id": "_:product" } },
-								{ "type": "option", "value": { "id": "_:coproduct" } }
+								{
+									"type": "option",
+									"value": {
+										"id": "_:label"
+									}
+								},
+								{
+									"type": "option",
+									"value": {
+										"id": "_:nil"
+									}
+								},
+								{
+									"type": "option",
+									"value": {
+										"id": "_:iri"
+									}
+								},
+								{
+									"type": "option",
+									"value": {
+										"id": "_:literal"
+									}
+								},
+								{
+									"type": "option",
+									"value": {
+										"id": "_:product"
+									}
+								},
+								{
+									"type": "option",
+									"value": {
+										"id": "_:coproduct"
+									}
+								}
 							]
 						}
 					}
