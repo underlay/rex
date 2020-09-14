@@ -117,10 +117,21 @@ function Index({}) {
 		}
 	}, [labels])
 
+	const handleLoadExampleClick = React.useCallback(({}) => {
+		schemaSchemaFile.then(
+			({ "@graph": schemaSchema }: { "@graph": Label[] }) => {
+				setNamespace("http://underlay.org/ns/")
+				setLabels(schemaSchema)
+				setLabelMap(new Map(schemaSchema.map(({ id, key }) => [id, key])))
+			}
+		)
+	}, [])
+
 	return (
 		<React.Fragment>
 			<header>
 				<h1>UL Schema Editor</h1>
+				<button onClick={handleLoadExampleClick}>Load example</button>
 				<input
 					type="file"
 					onChange={handleImportChange}
