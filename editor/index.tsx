@@ -33,7 +33,11 @@ function Index({}) {
 		defaultNamespace
 	)
 	const [labels, setLabels] = React.useState<Label[]>([])
-	const labelMap = React.useRef<Map<string, string>>(new Map())
+	// const labelMap = React.useRef<Map<string, string>>(new Map())
+	const labelMap = React.useMemo<Map<string, string>>(
+		() => new Map(labels.map((label) => [label.id, label.key])),
+		[labels]
+	)
 
 	const handleClick = React.useCallback(
 		({}) => {
@@ -45,7 +49,7 @@ function Index({}) {
 				value: { type: "nil" },
 			}
 			setLabels([...labels, label])
-			labelMap.current.set(id, "")
+			// labelMap.current.set(id, "")
 		},
 		[labels]
 	)
@@ -54,7 +58,7 @@ function Index({}) {
 		(index: number) => {
 			const nextLabels = labels.slice()
 			const [{ id }] = nextLabels.splice(index, 1)
-			labelMap.current.delete(id)
+			// labelMap.current.delete(id)
 			setLabels(nextLabels)
 		},
 		[labels]
@@ -100,7 +104,6 @@ function Index({}) {
 			setNamespace(namespace)
 			setLabels(labels)
 			setClean(true)
-			labelMap.current = new Map(labels.map((label) => [label.id, label.key]))
 		},
 		[]
 	)
@@ -171,13 +174,13 @@ function Index({}) {
 							id={label.id}
 							keyName={label.key}
 							value={label.value}
-							labels={labelMap.current}
+							labels={labelMap}
 							namespace={namespace}
 							clean={clean}
 							onChange={(label) => {
-								if (label.key !== labels[index].key) {
-									labelMap.current.set(label.id, label.key)
-								}
+								// if (label.key !== labels[index].key) {
+								// 	labelMap.current.set(label.id, label.key)
+								// }
 								const nextLabels = setArrayIndex(labels, label, index)
 								setLabels(nextLabels)
 								setClean(false)

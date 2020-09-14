@@ -180,7 +180,7 @@ function ComponentConfig(props: {
 				<label className="key">
 					<span>Key</span>
 					<input
-						autoFocus={!props.clean}
+						autoFocus={props.clean}
 						className="uri"
 						type="text"
 						value={key}

@@ -78,29 +78,34 @@ export function LabelConfig(props: {
 
 	return (
 		<div className="label">
-			<SelectType
-				labels={props.labels}
-				namespace={props.namespace}
-				clean={props.clean}
-				value={props.value}
-				onChange={handleValueChange}
-				error={error}
-			>
-				<label className="key">
-					<span>Key</span>
-					<input
-						autoFocus={!props.clean}
-						className="uri"
-						type="text"
-						value={key}
-						placeholder={props.namespace ? namePlaceholder : uriPlaceholder}
-						onChange={handleKeyChange}
-					/>
-				</label>
-				<span className="remove">
-					<button onClick={handleClick}>Remove label</button>
-				</span>
-			</SelectType>
+			<details open={true}>
+				<summary>
+					<h2>{props.keyName}</h2>
+				</summary>
+				<SelectType
+					labels={props.labels}
+					namespace={props.namespace}
+					clean={props.clean}
+					value={props.value}
+					onChange={handleValueChange}
+					error={error}
+				>
+					<label className="key">
+						<span>Key</span>
+						<input
+							autoFocus={props.clean}
+							className="uri"
+							type="text"
+							value={key}
+							placeholder={props.namespace ? namePlaceholder : uriPlaceholder}
+							onChange={handleKeyChange}
+						/>
+					</label>
+					<span className="remove">
+						<button onClick={handleClick}>Remove label</button>
+					</span>
+				</SelectType>
+			</details>
 		</div>
 	)
 }
