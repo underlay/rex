@@ -10,7 +10,8 @@ import {
 	validateKey,
 	propertyPatternURL,
 	namePlaceholder,
-	checkDuplicate,
+	isDuplicate,
+	LabelContext,
 } from "./utils"
 import { SelectType } from "./type"
 
@@ -32,10 +33,13 @@ export const makeComponentId = (components: Component[]): ComponentId[] => {
 }
 
 export function ProductConfig(props: {
-	labels: Map<string, string>
+	// labels: Map<string, string>
 	namespace: null | string
 	autoFocus: boolean
 	components: ComponentId[]
+	parent: string
+	// focus: string | null
+	// onFocus: (id: string | null) => void
 	onChange: (type: ProductType) => void
 }) {
 	const handleChange = React.useCallback(
@@ -72,9 +76,32 @@ export function ProductConfig(props: {
 		[props.onChange, props.components]
 	)
 
+	// const handleMouseOver = React.useCallback(
+	// 	(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+	// 		props.onFocus(props.parent)
+	// 		event.stopPropagation()
+	// 	},
+	// 	[props.onFocus, props.parent]
+	// )
+
+	// const handleMouseOut = React.useCallback(
+	// 	(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+	// 		props.onFocus(null)
+	// 		event.stopPropagation()
+	// 	},
+	// 	[props.onFocus]
+	// )
+
+	// const className =
+	// 	props.focus === props.parent ? "product header focus" : "product header"
 	return (
 		<React.Fragment>
-			<div className="product header">
+			<div
+				className="product header"
+				// className={className}
+				// onMouseOver={handleMouseOver}
+				// onMouseOut={handleMouseOut}
+			>
 				<span>Components</span>
 				<button className="add" onClick={handleClick}>
 					Add component
@@ -88,9 +115,11 @@ export function ProductConfig(props: {
 					keyName={key}
 					value={value}
 					index={index}
-					labels={props.labels}
+					// labels={props.labels}
 					namespace={props.namespace}
 					autoFocus={props.autoFocus}
+					// focus={props.focus}
+					// onFocus={props.onFocus}
 					onChange={handleChange}
 					onRemove={handleRemove}
 				/>
@@ -100,13 +129,14 @@ export function ProductConfig(props: {
 }
 
 function ComponentConfig(props: {
-	labels: Map<string, string>
 	namespace: null | string
 	autoFocus: boolean
 	index: number
 	id: string
 	keyName: string
 	value: Type
+	// focus: string | null
+	// onFocus: (id: string | null) => void
 	onChange: (index: number, component: ComponentId) => void
 	onRemove: (index: number) => void
 }) {
@@ -147,16 +177,7 @@ function ComponentConfig(props: {
 	)
 
 	const error = React.useMemo(() => {
-		if (validateKey(key, props.namespace)) {
-			if (checkDuplicate(props.id, key, props.labels)) {
-				return (
-					<div className="error">
-						<span>Duplicate key</span>
-					</div>
-				)
-			} else {
-			}
-		} else {
+		if (!validateKey(key, props.namespace)) {
 			return (
 				<div className="error">
 					<span>Key must validate </span>
@@ -164,17 +185,55 @@ function ComponentConfig(props: {
 				</div>
 			)
 		}
-		return null
+
+		return (
+			<LabelContext.Consumer>
+				{(labelMap) =>
+					isDuplicate(props.id, key, labelMap) ? (
+						<div className="error">
+							<span>Duplicate key</span>
+						</div>
+					) : null
+				}
+			</LabelContext.Consumer>
+		)
 	}, [key, props.id, props.namespace])
 
+	// const handleMouseOver = React.useCallback(
+	// 	(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+	// 		props.onFocus(props.id)
+	// 		event.stopPropagation()
+	// 	},
+	// 	[props.onFocus, props.id]
+	// )
+
+	// const handleMouseOut = React.useCallback(
+	// 	(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+	// 		props.onFocus(null)
+	// 		event.stopPropagation()
+	// 	},
+	// 	[props.onFocus]
+	// )
+
+	// const className =
+	// 	props.focus === props.id ? "product entry focus" : "product entry"
+
 	return (
-		<div className="product entry">
+		<div
+			className="product entry"
+			// className={className}
+			// onMouseOver={handleMouseOver}
+			// onMouseOut={handleMouseOut}
+		>
 			<SelectType
-				labels={props.labels}
 				namespace={props.namespace}
 				autoFocus={props.autoFocus}
+				propertyId={props.id}
+				valueId={`${props.id}-val`}
 				value={props.value}
+				// focus={props.focus}
 				onChange={handleTypeChange}
+				// onFocus={props.onFocus}
 				error={error}
 			>
 				<label className="key">

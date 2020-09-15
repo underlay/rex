@@ -9,12 +9,12 @@ import {
 	namePlaceholder,
 	validateKey,
 	propertyPatternURL,
-	checkDuplicate,
+	isDuplicate,
+	LabelContext,
 } from "./utils"
 import { SelectType } from "./type"
 
 export function LabelConfig(props: {
-	labels: Map<string, string>
 	namespace: null | string
 	autoFocus: boolean
 	index: number
@@ -57,56 +57,79 @@ export function LabelConfig(props: {
 	])
 
 	const error = React.useMemo(() => {
-		if (validateKey(key, props.namespace)) {
-			if (checkDuplicate(props.id, key, props.labels)) {
-				return (
-					<div className="error">
-						<span>Duplicate key</span>
-					</div>
-				)
-			} else {
-				return null
-			}
-		} else {
+		if (!validateKey(key, props.namespace)) {
 			return (
 				<div className="error">
 					<span>Key must validate </span>
 					<a href={propertyPatternURL}>this pattern</a>
 				</div>
 			)
+		} else {
+			return (
+				<LabelContext.Consumer>
+					{(labelMap) =>
+						isDuplicate(props.id, key, labelMap) ? (
+							<div className="error">
+								<span>Duplicate key</span>
+							</div>
+						) : null
+					}
+				</LabelContext.Consumer>
+			)
 		}
 	}, [key, props.id, props.namespace])
 
+	// const handleMouseOver = React.useCallback(
+	// 	(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+	// 		props.onFocus(props.id)
+	// 		event.stopPropagation()
+	// 	},
+	// 	[props.onFocus, props.id]
+	// )
+
+	// const handleMouseOut = React.useCallback(
+	// 	(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+	// 		props.onFocus(null)
+	// 		event.stopPropagation()
+	// 	},
+	// 	[props.onFocus]
+	// )
+
 	return (
-		<div className="label">
-			<details open={autoFocus}>
-				<summary>
-					<h2>{props.keyName}</h2>
-				</summary>
-				<SelectType
-					labels={props.labels}
-					namespace={props.namespace}
-					autoFocus={props.autoFocus}
-					value={props.value}
-					onChange={handleValueChange}
-					error={error}
-				>
-					<label className="key">
-						<span>Key</span>
-						<input
-							autoFocus={props.autoFocus}
-							className="uri"
-							type="text"
-							value={key}
-							placeholder={props.namespace ? namePlaceholder : uriPlaceholder}
-							onChange={handleKeyChange}
-						/>
-					</label>
-					<span className="remove">
-						<button onClick={handleClick}>Remove label</button>
-					</span>
-				</SelectType>
-			</details>
-		</div>
+		<details className="label" open={autoFocus}>
+			<summary
+			// className={props.focus === props.id ? "focus" : ""}
+			// onMouseOver={handleMouseOver}
+			// onMouseOut={handleMouseOut}
+			>
+				<h2>{props.keyName}</h2>
+			</summary>
+			<SelectType
+				namespace={props.namespace}
+				autoFocus={autoFocus}
+				value={props.value}
+				propertyId={`${props.id}-def`}
+				valueId={`${props.id}-val`}
+				// focus={props.focus}
+				error={error}
+				onChange={handleValueChange}
+				// onFocus={props.onFocus}
+			>
+				<label className="key">
+					<span>Key</span>
+					<input
+						autoFocus={autoFocus}
+						className="uri"
+						type="text"
+						value={key}
+						placeholder={props.namespace ? namePlaceholder : uriPlaceholder}
+						onChange={handleKeyChange}
+					/>
+				</label>
+				<span className="remove">
+					<button onClick={handleClick}>Remove label</button>
+				</span>
+			</SelectType>
+		</details>
 	)
 }

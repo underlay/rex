@@ -5,10 +5,10 @@ declare type ComponentId = Component & {
 };
 export declare const makeComponentId: (components: Component[]) => ComponentId[];
 export declare function ProductConfig(props: {
-    labels: Map<string, string>;
     namespace: null | string;
     autoFocus: boolean;
     components: ComponentId[];
+    parent: string;
     onChange: (type: ProductType) => void;
 }): JSX.Element;
 export {};

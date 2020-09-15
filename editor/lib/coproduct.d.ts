@@ -5,10 +5,10 @@ declare type OptionId = Option & {
 };
 export declare const makeOptionId: (options: Option[]) => OptionId[];
 export declare function CoproductConfig(props: {
-    labels: Map<string, string>;
     namespace: null | string;
     autoFocus: boolean;
     options: OptionId[];
+    parent: string;
     onChange: (type: CoproductType) => void;
 }): JSX.Element;
 export {};

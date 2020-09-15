@@ -1,14 +1,25 @@
 import cytoscape from "cytoscape"
 
-export const Layout: cytoscape.LayoutOptions = {
-	name: "breadthfirst",
-	padding: 12,
-	animate: false,
-	fit: true,
-	spacingFactor: 1.5,
-	circle: false,
-	directed: true,
+export type LayoutOptions = {
+	circle: boolean
+	directed: boolean
+	inverted: boolean
 }
+
+export const MakeLayout = ({
+	circle,
+	directed,
+	inverted,
+}: LayoutOptions): cytoscape.LayoutOptions =>
+	({
+		name: "breadthfirst",
+		padding: 12,
+		animate: false,
+		spacingFactor: 1.5,
+		maximal: !inverted,
+		circle,
+		directed,
+	} as cytoscape.LayoutOptions)
 
 export const Style: cytoscape.Stylesheet[] = [
 	{
@@ -22,7 +33,7 @@ export const Style: cytoscape.Stylesheet[] = [
 	{
 		selector: "node.label",
 		style: {
-			"border-width": 2,
+			"border-width": 1,
 			width: "data(width)",
 			height: "data(height)",
 			"background-image": "data(svg)",
@@ -64,6 +75,8 @@ export const Style: cytoscape.Stylesheet[] = [
 	{
 		selector: "node.nil",
 		style: {
+			width: 20,
+			height: 20,
 			shape: "ellipse",
 			"background-color": "#ccc",
 			"border-color": "grey",
@@ -80,24 +93,15 @@ export const Style: cytoscape.Stylesheet[] = [
 		selector: "node.reference",
 		style: {
 			width: 20,
-			height: 16,
-			shape: "round-tag",
+			height: 20,
+			shape: "ellipse",
 			"background-color": "mistyrose",
-		},
-	},
-	{
-		selector: "edge.definition, edge.component, edge.option",
-		style: {
-			width: 4,
-			"curve-style": "straight",
-			"source-arrow-shape": "tee",
-			"target-arrow-shape": "triangle",
-			"z-index": 2,
 		},
 	},
 	{
 		selector: "edge.reference",
 		style: {
+			width: 3,
 			"curve-style": "unbundled-bezier",
 			"control-point-distances": "-40",
 			"control-point-weights": "0.33",
@@ -110,16 +114,20 @@ export const Style: cytoscape.Stylesheet[] = [
 		selector: "edge.definition",
 		style: {
 			width: 3,
+			"curve-style": "straight",
 			"line-style": "solid",
 			"line-color": "dimgrey",
 			"target-arrow-color": "dimgrey",
 			"source-arrow-color": "dimgrey",
+			"z-index": 2,
 		},
 	},
 	{
 		selector: "edge.component",
 		style: {
+			width: 4,
 			label: "data(key)",
+			"curve-style": "straight",
 			"font-size": 10,
 			"text-background-color": "whitesmoke",
 			"text-background-padding": "4",
@@ -131,16 +139,36 @@ export const Style: cytoscape.Stylesheet[] = [
 			"line-color": "lightslategray",
 			"target-arrow-color": "lightslategray",
 			"source-arrow-color": "lightslategray",
+			"source-arrow-shape": "tee",
+			"target-arrow-shape": "triangle",
+			"z-index": 2,
 		},
 	},
 	{
 		selector: "edge.option",
 		style: {
+			width: 4,
+			"curve-style": "straight",
 			"line-style": "dashed",
 			"line-dash-pattern": [4, 4],
 			"line-color": "#9696ae",
 			"target-arrow-color": "#9696ae",
 			"source-arrow-color": "#9696ae",
+			"source-arrow-shape": "tee",
+			"target-arrow-shape": "triangle",
+			"z-index": 2,
+		},
+	},
+	{
+		selector: "node.focus",
+		style: {
+			"border-width": 3,
+		},
+	},
+	{
+		selector: "edge.focus",
+		style: {
+			// width: 3,
 		},
 	},
 ]

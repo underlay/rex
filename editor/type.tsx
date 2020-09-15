@@ -17,7 +17,7 @@ import {
 
 import { makeComponentId, ProductConfig } from "./product"
 import { CoproductConfig, makeOptionId } from "./coproduct"
-import { xsdDatatypes } from "./utils"
+import { xsdDatatypes, LabelContext } from "./utils"
 
 type Types = {
 	label: ReferenceType
@@ -48,21 +48,30 @@ function getType(type: Type): keyof Types {
 export function SelectType(props: {
 	children: React.ReactNode
 	error: React.ReactNode
-	labels: Map<string, string>
 	namespace: null | string
 	autoFocus: boolean
+	propertyId: string
+	valueId: string
 	value: Type
+	// focus: string | null
+	// onFocus: (id: string | null) => void
 	onChange: (value: Type) => void
 }) {
 	const handleTypeChange = React.useCallback(
-		({ target: { value } }: React.ChangeEvent<HTMLSelectElement>) => {
+		(
+			{ target: { value } }: React.ChangeEvent<HTMLSelectElement>,
+			labelMap: Map<string, string>
+		) => {
 			if (value === "nil") {
 				props.onChange({ type: "nil" })
 			} else if (value === "label") {
-				const first = props.labels.keys().next()
+				const first = labelMap.keys().next()
 				props.onChange({ id: first.value })
 			} else if (value === "literal") {
-				props.onChange({ type: "literal", datatype: IRIs.xsd.string })
+				props.onChange({
+					type: "literal",
+					datatype: IRIs.xsd.string,
+				})
 			} else if (value === "iri") {
 				props.onChange({ type: "iri" })
 			} else if (value === "product") {
@@ -71,51 +80,86 @@ export function SelectType(props: {
 				props.onChange({ type: "coproduct", options: [] })
 			}
 		},
-		[props.labels, props.onChange]
+		[props.onChange]
 	)
 
+	// const handleMouseOver = React.useCallback(
+	// 	(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+	// 		props.onFocus(props.propertyId)
+	// 		event.stopPropagation()
+	// 	},
+	// 	[props.onFocus, props.propertyId]
+	// )
+
+	// const handleMouseOut = React.useCallback(
+	// 	(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+	// 		props.onFocus(null)
+	// 		event.stopPropagation()
+	// 	},
+	// 	[props.onFocus]
+	// )
+
+	// const className = props.focus === props.propertyId ? "value focus" : "value"
 	return (
-		<React.Fragment>
-			<div className="value">
-				<label className="type">
-					<span>Type</span>
-					<select value={getType(props.value)} onChange={handleTypeChange}>
-						{types.map((t) => (
-							<option key={t} value={t}>
-								{t}
-							</option>
-						))}
-					</select>
-				</label>
-				{props.children}
-			</div>
-			{props.error}
-			<TypeConfig
-				labels={props.labels}
-				namespace={props.namespace}
-				autoFocus={props.autoFocus}
-				value={props.value}
-				onChange={props.onChange}
-			/>
-		</React.Fragment>
+		<LabelContext.Consumer>
+			{(labelMap) => (
+				<React.Fragment>
+					<div
+						className="value"
+						// className={className}
+						// onMouseOver={handleMouseOver}
+						// onMouseOut={handleMouseOut}
+					>
+						<label className="type">
+							<span>Type</span>
+							<select
+								value={getType(props.value)}
+								onChange={(event) => handleTypeChange(event, labelMap)}
+							>
+								{types.map((t) => (
+									<option key={t} value={t}>
+										{t}
+									</option>
+								))}
+							</select>
+						</label>
+						{props.children}
+					</div>
+					{props.error}
+					<TypeConfig
+						namespace={props.namespace}
+						autoFocus={props.autoFocus}
+						value={props.value}
+						// focus={props.focus}
+						id={props.valueId}
+						onChange={props.onChange}
+						// onFocus={props.onFocus}
+					/>
+				</React.Fragment>
+			)}
+		</LabelContext.Consumer>
 	)
 }
 
 function TypeConfig(props: {
-	labels: Map<string, string>
 	namespace: null | string
 	autoFocus: boolean
+	// focus: string | null
 	value: Type
+	id: string
 	onChange: (value: Type) => void
+	// onFocus: (id: string | null) => void
 }) {
 	if (isReference(props.value)) {
 		return (
 			<ReferenceConfig
-				labels={props.labels}
 				namespace={props.namespace}
 				autoFocus={props.autoFocus}
 				id={props.value.id}
+				parent={props.id}
+				// focus={props.focus}
 				onChange={props.onChange}
+				// onFocus={props.onFocus}
 			/>
 		)
 	} else if (props.value.type === "nil") {
@@ -124,7 +168,10 @@ function TypeConfig(props: {
 		return (
 			<LiteralConfig
 				datatype={props.value.datatype}
+				parent={props.id}
+				// focus={props.focus}
 				onChange={props.onChange}
+				// onFocus={props.onFocus}
 			/>
 		)
 	} else if (props.value.type === "iri") {
@@ -132,20 +179,24 @@ function TypeConfig(props: {
 	} else if (props.value.type === "product") {
 		return (
 			<ProductConfig
-				labels={props.labels}
 				namespace={props.namespace}
 				autoFocus={props.autoFocus}
 				components={makeComponentId(props.value.components)}
+				parent={props.id}
+				// focus={props.focus}
+				// onFocus={props.onFocus}
 				onChange={props.onChange}
 			/>
 		)
 	} else if (props.value.type === "coproduct") {
 		return (
 			<CoproductConfig
-				labels={props.labels}
 				namespace={props.namespace}
 				autoFocus={props.autoFocus}
 				options={makeOptionId(props.value.options)}
+				parent={props.id}
+				// focus={props.focus}
+				// onFocus={props.onFocus}
 				onChange={props.onChange}
 			/>
 		)
@@ -155,17 +206,14 @@ function TypeConfig(props: {
 }
 
 function ReferenceConfig(props: {
-	labels: Map<string, string>
 	namespace: null | string
 	autoFocus: boolean
 	id: string
+	parent: string
+	// focus: string | null
 	onChange: (value: ReferenceType) => void
+	// onFocus: (focus: string | null) => void
 }) {
-	// const handleChange = React.useCallback(
-	// 	({ target: { value } }: React.ChangeEvent<HTMLSelectElement>) =>
-	// 		props.onChange({ id: value }),
-	// 	[props.onChange]
-	// )
 	const handleChange = React.useCallback(
 		({ target: { checked, value } }: React.ChangeEvent<HTMLInputElement>) => {
 			if (checked) {
@@ -175,41 +223,79 @@ function ReferenceConfig(props: {
 		[props.onChange]
 	)
 
+	// const handleMouseOver = React.useCallback(
+	// 	(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+	// 		props.onFocus(props.parent)
+	// 		event.stopPropagation()
+	// 	},
+	// 	[props.onFocus, props.parent]
+	// )
+
+	// const handleMouseOut = React.useCallback(
+	// 	(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+	// 		props.onFocus(null)
+	// 		event.stopPropagation()
+	// 	},
+	// 	[props.onFocus]
+	// )
+
+	// const handleLabelMouseOver = React.useCallback(
+	// 	(event: React.MouseEvent<HTMLLabelElement, MouseEvent>, id: string) => {
+	// 		props.onFocus(id)
+	// 		event.stopPropagation()
+	// 	},
+	// 	[props.onFocus]
+	// )
+
+	// const handleLabelMouseOut = React.useCallback(
+	// 	(event: React.MouseEvent<HTMLLabelElement, MouseEvent>) => {
+	// 		props.onFocus(null)
+	// 		event.stopPropagation()
+	// 	},
+	// 	[props.onFocus]
+	// )
+
+	// const className = props.focus === props.parent ? "focus" : ""
 	return (
-		<div className="reference">
-			<details open={props.autoFocus}>
-				<summary>Label</summary>
-				<form>
-					{Array.from(props.labels).map(([id, key]) => (
-						<label key={id}>
-							<input
-								type="radio"
-								value={id}
-								checked={props.id === id}
-								onChange={handleChange}
-							/>
-							<span>{key}</span>
-						</label>
-					))}
-				</form>
-			</details>
-			{/* <label>
-				<span>Label</span>
-				<select value={props.id} onChange={handleChange}>
-					{Array.from(props.labels).map(([id, key]) => (
-						<option key={id} value={id}>
-							{key}
-						</option>
-					))}
-				</select>
-			</label> */}
-		</div>
+		<details className="reference" open={props.autoFocus}>
+			<summary
+			// className={className}
+			// onMouseOver={handleMouseOver}
+			// onMouseOut={handleMouseOut}
+			>
+				Reference
+			</summary>
+			<form>
+				<LabelContext.Consumer>
+					{(labelMap) =>
+						Array.from(labelMap).map(([id, key]) => (
+							<label
+								key={id}
+								// onMouseOver={(event) => handleLabelMouseOver(event, id)}
+								// onMouseOut={handleLabelMouseOut}
+							>
+								<input
+									type="radio"
+									value={id}
+									checked={props.id === id}
+									onChange={handleChange}
+								/>
+								<code>{key}</code>
+							</label>
+						))
+					}
+				</LabelContext.Consumer>
+			</form>
+		</details>
 	)
 }
 
 function LiteralConfig(props: {
 	datatype: string
+	parent: string
+	// focus: string | null
 	onChange: (value: LiteralType) => void
+	// onFocus: (focus: string | null) => void
 }) {
 	const [value, setValue] = React.useState<null | string>(null)
 
@@ -252,8 +338,30 @@ function LiteralConfig(props: {
 		}
 	}, [datatype])
 
+	// const handleMouseOver = React.useCallback(
+	// 	(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+	// 		props.onFocus(props.parent)
+	// 		event.stopPropagation()
+	// 	},
+	// 	[props.onFocus, props.parent]
+	// )
+
+	// const handleMouseOut = React.useCallback(
+	// 	(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+	// 		props.onFocus(null)
+	// 		event.stopPropagation()
+	// 	},
+	// 	[props.onFocus]
+	// )
+
+	// const className = props.focus === props.parent ? "literal focus" : "literal"
 	return (
-		<div className="literal">
+		<div
+			className="literal"
+			// className={className}
+			// onMouseOver={handleMouseOver}
+			// onMouseOut={handleMouseOut}
+		>
 			<label className="datatype">
 				<span>Datatype</span>
 				<select value={xsdDatatypes[index]} onChange={handleSelect}>

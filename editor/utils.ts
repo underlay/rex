@@ -1,3 +1,4 @@
+import React from "react"
 import { IRIs } from "n3.ts"
 
 import { Type, isReference, Label } from "../lib/apg/schema.js"
@@ -31,15 +32,13 @@ export const validateKey = (input: string, namespace: null | string) =>
 		namespacePattern.test(namespace) &&
 		namePattern.test(input))
 
-export function checkDuplicate(
+export function isDuplicate(
 	id: string,
 	key: string,
-	labels: Map<string, string>
+	labelMap: Map<string, string>
 ) {
-	for (const [labelId, labelKey] of labels) {
-		if (labelId === id) {
-			return false
-		} else if (labelKey === key) {
+	for (const [labelId, labelKey] of labelMap) {
+		if (labelKey === key && labelId !== id) {
 			return true
 		}
 	}
@@ -108,3 +107,44 @@ export const xsdDatatypes: string[] = [
 ]
 
 export const isImport: WeakSet<Label[]> = new WeakSet()
+
+export const FocusContext = React.createContext<{
+	focus: null | string
+	setFocus: (focus: null | string) => void
+}>({ focus: null, setFocus: () => {} })
+
+export const LabelContext = React.createContext<Map<string, string>>(new Map())
+
+function cloneType(type: Type): Type {
+	if (isReference(type)) {
+		return { ...type }
+	} else if (type.type === "product") {
+		return {
+			type: "product",
+			components: type.components.map((component) => ({
+				type: "component",
+				key: component.key,
+				value: cloneType(component.value),
+			})),
+		}
+	} else if (type.type === "coproduct") {
+		return {
+			type: "coproduct",
+			options: type.options.map((option) => ({
+				type: "option",
+				value: cloneType(option.value),
+			})),
+		}
+	} else {
+		return { ...type }
+	}
+}
+
+export function cloneSchema(labels: Label[]): Label[] {
+	return labels.map((label) => ({
+		id: label.id,
+		type: "label",
+		key: label.key,
+		value: cloneType(label.value),
+	}))
+}

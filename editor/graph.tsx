@@ -7,7 +7,7 @@ import { Label, Type, isReference, LiteralType } from "../lib/apg/schema.js"
 import { makeComponentId } from "./product"
 import { makeOptionId } from "./coproduct"
 import { xsdDatatypes } from "./utils"
-import { Style, Layout } from "./style"
+import { Style, MakeLayout, LayoutOptions } from "./style"
 
 const FONT_FAMILY = "monospace"
 const FONT_SIZE = 12
@@ -34,11 +34,11 @@ ${content}
 })
 
 function makeLabelBackground(label: Label) {
-	const width = Math.max(CHAR * label.key.length + 8, 20),
+	const width = Math.max(CHAR * label.key.length + 12, 20),
 		height = LINE_HEIGHT
 
 	return makeBackground(
-		`<g><text x="4" y="14">${label.key}</text></g>`,
+		`<g><text x="6" y="14">${label.key}</text></g>`,
 		width,
 		height
 	)
@@ -47,19 +47,23 @@ function makeLabelBackground(label: Label) {
 function makeLiteralBackground(literal: LiteralType) {
 	const name = xsdDatatypes.includes(literal.datatype)
 		? `[${literal.datatype.slice(literal.datatype.lastIndexOf("#") + 1)}]`
-		: `&lt;${literal.datatype}&gt;`
+		: `<${literal.datatype}>`
 
 	const width = CHAR * name.length + 8,
 		height = LINE_HEIGHT
 
+	const text = name.replace(/</g, "&lt;").replace(/>/g, "&gt;")
 	return makeBackground(
-		`<g><text x="4" y="13">${name}</text></g>`,
+		`<g><text x="4" y="13">${text}</text></g>`,
 		width,
 		height
 	)
 }
 
-function makeElements(labels: Label[]): cytoscape.ElementDefinition[] {
+function makeElements(
+	labels: Label[],
+	options: LayoutOptions
+): cytoscape.ElementDefinition[] {
 	const elements: cytoscape.ElementDefinition[] = []
 	for (const label of labels) {
 		const id = label.id.slice(2)
@@ -70,7 +74,7 @@ function makeElements(labels: Label[]): cytoscape.ElementDefinition[] {
 			data: { id, key: label.key, ...background },
 		})
 
-		const target = makeTypeElement(id, label.value, elements)
+		const target = makeTypeElement(id, label.value, elements, options)
 
 		elements.push({
 			group: "edges",
@@ -89,10 +93,13 @@ function makeElements(labels: Label[]): cytoscape.ElementDefinition[] {
 function makeTypeElement(
 	parent: string,
 	type: Type,
-	elements: cytoscape.ElementDefinition[]
+	elements: cytoscape.ElementDefinition[],
+	options: LayoutOptions
 ): string {
 	const id = `${parent}-val`
 	if (isReference(type)) {
+		// return type.id.slice(2)
+		const [source, target] = [type.id.slice(2), id]
 		elements.push(
 			{
 				group: "nodes",
@@ -105,13 +112,12 @@ function makeTypeElement(
 				data: {
 					type: "reference",
 					id: `${parent}-ref`,
-					source: id,
-					target: type.id.slice(2),
+					source: options.inverted ? target : source,
+					target: options.inverted ? source : target,
 				},
 			}
 		)
 	} else if (type.type === "nil") {
-		const id = `${parent}-val`
 		elements.push({
 			group: "nodes",
 			classes: "nil",
@@ -143,7 +149,12 @@ function makeTypeElement(
 		})
 		for (const component of makeComponentId(type.components)) {
 			const componentId = component.id.slice(2)
-			const target = makeTypeElement(componentId, component.value, elements)
+			const target = makeTypeElement(
+				componentId,
+				component.value,
+				elements,
+				options
+			)
 			elements.push({
 				group: "edges",
 				classes: "component",
@@ -164,7 +175,7 @@ function makeTypeElement(
 		})
 		for (const option of makeOptionId(type.options)) {
 			const optionId = option.id.slice(2)
-			const target = makeTypeElement(optionId, option.value, elements)
+			const target = makeTypeElement(optionId, option.value, elements, options)
 			elements.push({
 				group: "edges",
 				classes: "option",
@@ -182,12 +193,18 @@ function makeTypeElement(
 	return id
 }
 
-export function Graph(props: { labels: Label[] }) {
+export function Graph(props: {
+	labels: Label[]
+	// focus: null | string
+	// onFocus: (id: string | null) => void
+}) {
 	const [cy, setCy] = React.useState<null | cytoscape.Core>(null)
+	const [circle, setCircle] = React.useState(false)
+	const [directed, setDirected] = React.useState(false)
+	const [inverted, setInverted] = React.useState(false)
 
 	const attachRef = React.useCallback(
 		(container: HTMLDivElement) => {
-			// Neither of these should really happen?
 			if (container === null) {
 				return
 			} else if (cy !== null) {
@@ -197,13 +214,15 @@ export function Graph(props: { labels: Label[] }) {
 			const nextCy = cytoscape({
 				container,
 				style: Style,
-				userPanningEnabled: false,
-				userZoomingEnabled: false,
-				autoungrabify: true,
+				// userPanningEnabled: false,
+				// userZoomingEnabled: false,
+				// autoungrabify: true,
 				zoom: 1,
 				maxZoom: 2,
 				minZoom: 0.5,
 			})
+
+			;(window as any).cy = nextCy
 
 			setCy(nextCy)
 		},
@@ -212,13 +231,76 @@ export function Graph(props: { labels: Label[] }) {
 
 	React.useEffect(() => {
 		if (cy !== null) {
+			const options = { circle, directed, inverted: directed && inverted }
 			cy.batch(() => {
 				cy.elements().remove()
-				cy.add(makeElements(props.labels))
-				cy.elements("node, edge").layout(Layout).run()
+				cy.add(makeElements(props.labels, options))
+				cy.elements("node, edge").layout(MakeLayout(options)).run()
 			})
 		}
-	}, [props.labels, cy])
+	}, [props.labels, cy, circle, directed, inverted])
 
-	return <div className="container" ref={attachRef} />
+	// React.useEffect(() => {
+	// 	if (cy !== null) {
+	// 		if (props.focus === null) {
+	// 			cy.elements(`.focus`).removeClass("focus")
+	// 		} else {
+	// 			const eles = cy.elements(`[id = "${props.focus.slice(2)}"]`)
+	// 			eles.addClass("focus")
+	// 			// console.log("eles", cy.elements(`#${props.focus.slice(2)}`).classes())
+	// 		}
+	// 	}
+	// }, [cy, props.focus, props.onFocus])
+
+	const handleCircleChange = React.useCallback(
+		({ target: { checked } }: React.ChangeEvent<HTMLInputElement>) =>
+			setCircle(checked),
+		[]
+	)
+
+	const handleDirectedChange = React.useCallback(
+		({ target: { checked } }: React.ChangeEvent<HTMLInputElement>) =>
+			setDirected(checked),
+		[]
+	)
+
+	const handleInvertedChange = React.useCallback(
+		({ target: { checked } }: React.ChangeEvent<HTMLInputElement>) =>
+			setInverted(checked),
+		[]
+	)
+
+	return (
+		<React.Fragment>
+			<nav>
+				<label>
+					<span>Circle</span>
+					<input
+						type="checkbox"
+						checked={circle}
+						onChange={handleCircleChange}
+					/>
+				</label>
+				<label>
+					<span>Sort</span>
+					<input
+						type="checkbox"
+						checked={directed}
+						onChange={handleDirectedChange}
+					/>
+				</label>
+				{directed && (
+					<label>
+						<span>Invert references</span>
+						<input
+							type="checkbox"
+							checked={inverted}
+							onChange={handleInvertedChange}
+						/>
+					</label>
+				)}
+			</nav>
+			<div className="container" ref={attachRef} />
+		</React.Fragment>
+	)
 }

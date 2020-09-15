@@ -14,6 +14,9 @@ import {
 	findError,
 	compactLabelWithNamespace,
 	isImport,
+	FocusContext,
+	LabelContext,
+	cloneSchema,
 } from "./utils"
 import { LabelConfig } from "./label"
 import { Namespace } from "./namespace"
@@ -32,6 +35,7 @@ function Index({}) {
 	const [namespace, setNamespace] = React.useState<null | string>(
 		defaultNamespace
 	)
+
 	const [labels, setLabels] = React.useState<Label[]>([])
 	const labelMap = React.useMemo<Map<string, string>>(
 		() => new Map(labels.map((label) => [label.id, label.key])),
@@ -112,7 +116,7 @@ function Index({}) {
 				Promise.all([schemaSchemaFile, file.text()]).then(
 					([{ "@graph": schemaSchema }, input]) => {
 						const labels = parseSchemaString(input, schemaSchema)
-						console.log("imported labels", labels)
+						console.log("imported schema", labels)
 						handleImport(labels, null)
 					}
 				)
@@ -131,17 +135,13 @@ function Index({}) {
 	}, [labels])
 
 	const handleLoadExampleClick = React.useCallback(({}) => {
-		schemaSchemaFile.then(
-			({ "@graph": schemaSchema }: { "@graph": Label[] }) => {
-				console.log("loading example")
-				handleImport(schemaSchema, "http://underlay.org/ns/")
-			}
+		schemaSchemaFile.then(({ "@graph": schemaSchema }: { "@graph": Label[] }) =>
+			handleImport(cloneSchema(schemaSchema), "http://underlay.org/ns/")
 		)
 	}, [])
 
 	const handleLabelChange = React.useCallback(
 		(label: Label, index: number) => {
-			console.log("handle label change", label, index)
 			const nextLabels = setArrayIndex(labels, label, index)
 			setLabels(nextLabels)
 		},
@@ -149,6 +149,12 @@ function Index({}) {
 	)
 
 	const autoFocus = !isImport.has(labels)
+
+	const [focus, setFocus] = React.useState<null | string>(null)
+
+	// const handleFocus = React.useCallback((focus: string | null) => {
+	// 	setFocus(focus)
+	// }, [])
 
 	return (
 		<React.Fragment>
@@ -170,32 +176,39 @@ function Index({}) {
 			</header>
 
 			<div className="panels">
-				<section className="editor">
-					<Namespace namespace={namespace} onChange={setNamespace} />
-					<div className="header">
-						<span>Labels</span>
-						<button className="add" onClick={handleClick}>
-							Add label
-						</button>
-					</div>
-					{labels.map((label, index) => (
-						<LabelConfig
-							key={label.id}
-							index={index}
-							id={label.id}
-							keyName={label.key}
-							value={label.value}
-							labels={labelMap}
-							namespace={namespace}
-							autoFocus={autoFocus}
-							onChange={(label) => handleLabelChange(label, index)}
-							onRemove={handleRemove}
+				<FocusContext.Provider value={{ focus, setFocus }}>
+					<section className="editor">
+						<Namespace namespace={namespace} onChange={setNamespace} />
+						<div className="header">
+							<span>Labels</span>
+							<button className="add" onClick={handleClick}>
+								Add label
+							</button>
+						</div>
+						<LabelContext.Provider value={labelMap}>
+							{labels.map((label, index) => (
+								<LabelConfig
+									key={label.id}
+									index={index}
+									id={label.id}
+									keyName={label.key}
+									value={label.value}
+									namespace={namespace}
+									autoFocus={autoFocus}
+									onChange={(label) => handleLabelChange(label, index)}
+									onRemove={handleRemove}
+								/>
+							))}
+						</LabelContext.Provider>
+					</section>
+					<section className="graph">
+						<Graph
+							labels={labels}
+							// focus={focus}
+							// onFocus={handleFocus}
 						/>
-					))}
-				</section>
-				<section className="graph">
-					<Graph labels={labels} />
-				</section>
+					</section>
+				</FocusContext.Provider>
 			</div>
 		</React.Fragment>
 	)

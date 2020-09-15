@@ -23,10 +23,12 @@ export const makeOptionId = (options: Option[]): OptionId[] => {
 }
 
 export function CoproductConfig(props: {
-	labels: Map<string, string>
 	namespace: null | string
 	autoFocus: boolean
 	options: OptionId[]
+	parent: string
+	// focus: string | null
+	// onFocus: (id: string | null) => void
 	onChange: (type: CoproductType) => void
 }) {
 	const handleChange = React.useCallback(
@@ -63,9 +65,32 @@ export function CoproductConfig(props: {
 		[props.onChange, props.options]
 	)
 
+	// const handleMouseOver = React.useCallback(
+	// 	(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+	// 		props.onFocus(props.parent)
+	// 		event.stopPropagation()
+	// 	},
+	// 	[props.onFocus, props.parent]
+	// )
+
+	// const handleMouseOut = React.useCallback(
+	// 	(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+	// 		props.onFocus(null)
+	// 		event.stopPropagation()
+	// 	},
+	// 	[props.onFocus]
+	// )
+
+	// const className =
+	// 	props.focus === props.parent ? "coproduct header focus" : "coproduct header"
 	return (
 		<React.Fragment>
-			<div className="coproduct header">
+			<div
+				className="coproduct header"
+				// className={className}
+				// onMouseOver={handleMouseOver}
+				// onMouseOut={handleMouseOut}
+			>
 				<span>Options</span>
 				<button className="add" onClick={handleClick}>
 					Add option
@@ -78,9 +103,10 @@ export function CoproductConfig(props: {
 					id={id}
 					value={value}
 					index={index}
-					labels={props.labels}
 					namespace={props.namespace}
 					autoFocus={props.autoFocus}
+					// focus={props.focus}
+					// onFocus={props.onFocus}
 					onChange={handleChange}
 					onRemove={handleRemove}
 				/>
@@ -90,12 +116,13 @@ export function CoproductConfig(props: {
 }
 
 function OptionConfig(props: {
-	labels: Map<string, string>
 	namespace: null | string
 	autoFocus: boolean
 	index: number
 	id: string
 	value: Type
+	// focus: string | null
+	// onFocus: (id: string | null) => void
 	onChange: (index: number, component: OptionId) => void
 	onRemove: (index: number) => void
 }) {
@@ -115,15 +142,42 @@ function OptionConfig(props: {
 		[props.onChange]
 	)
 
+	// const handleMouseOver = React.useCallback(
+	// 	(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+	// 		props.onFocus(props.id)
+	// 		event.stopPropagation()
+	// 	},
+	// 	[props.onFocus, props.id]
+	// )
+
+	// const handleMouseOut = React.useCallback(
+	// 	(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+	// 		props.onFocus(null)
+	// 		event.stopPropagation()
+	// 	},
+	// 	[props.onFocus]
+	// )
+
+	// const className =
+	// 	props.focus === props.id ? "coproduct entry focus" : "coproduct entry"
 	return (
-		<div className="coproduct entry">
+		<div
+			className="coproduct entry"
+			// className={className}
+			// onMouseOver={handleMouseOver}
+			// onMouseOut={handleMouseOut}
+		>
 			<SelectType
-				labels={props.labels}
+				// labelMap={props.labels}
 				namespace={props.namespace}
 				autoFocus={props.autoFocus}
+				propertyId={props.id}
+				valueId={`${props.id}-val`}
 				value={props.value}
-				onChange={handleTypeChange}
 				error={null}
+				// focus={props.focus}
+				// onFocus={props.onFocus}
+				onChange={handleTypeChange}
 			>
 				<span className="remove">
 					<button onClick={handleClick}>Remove option</button>

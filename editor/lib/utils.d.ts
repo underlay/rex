@@ -1,3 +1,4 @@
+import React from "react";
 import { Type, Label } from "../lib/apg/schema.js";
 export declare function setArrayIndex<T>(array: T[], element: T, index: number): T[];
 export declare const uriPlaceholder = "http://...";
@@ -7,8 +8,14 @@ export declare const namespacePatternURL: string;
 export declare const propertyPatternURL: string;
 export declare const namePatternURL: string;
 export declare const validateKey: (input: string, namespace: null | string) => boolean;
-export declare function checkDuplicate(id: string, key: string, labels: Map<string, string>): boolean;
+export declare function isDuplicate(id: string, key: string, labelMap: Map<string, string>): boolean;
 export declare function findError(type: Type, namespace: null | string): null | Error;
 export declare function compactLabelWithNamespace(labels: Label[], namespace: null | string): void;
 export declare const xsdDatatypes: string[];
 export declare const isImport: WeakSet<Label[]>;
+export declare const FocusContext: React.Context<{
+    focus: null | string;
+    setFocus: (focus: null | string) => void;
+}>;
+export declare const LabelContext: React.Context<Map<string, string>>;
+export declare function cloneSchema(labels: Label[]): Label[];
