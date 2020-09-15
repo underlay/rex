@@ -7,7 +7,7 @@ import { Label, Type, isReference, LiteralType } from "../lib/apg/schema.js"
 import { makeComponentId } from "./product"
 import { makeOptionId } from "./coproduct"
 import { xsdDatatypes } from "./utils"
-import { Style, MakeLayout, LayoutOptions } from "./style"
+import { Style, MakeLayout, LayoutOptions, FooterStyle } from "./style"
 
 const FONT_FAMILY = "monospace"
 const FONT_SIZE = 12
@@ -270,6 +270,30 @@ export function Graph(props: {
 		[]
 	)
 
+	const attachFooterRef = React.useCallback((container: HTMLDivElement) => {
+		if (container !== null) {
+			cytoscape({
+				container,
+				style: FooterStyle,
+				userPanningEnabled: false,
+				userZoomingEnabled: false,
+				autoungrabify: true,
+				autounselectify: true,
+				zoom: 1,
+				layout: { name: "grid", padding: 0 },
+				elements: [
+					{ group: "nodes", data: { id: "label" } },
+					{ group: "nodes", data: { id: "reference" } },
+					{ group: "nodes", data: { id: "nil" } },
+					{ group: "nodes", data: { id: "iri" } },
+					{ group: "nodes", data: { id: "literal" } },
+					{ group: "nodes", data: { id: "product" } },
+					{ group: "nodes", data: { id: "coproduct" } },
+				],
+			})
+		}
+	}, [])
+
 	return (
 		<React.Fragment>
 			<nav>
@@ -301,6 +325,7 @@ export function Graph(props: {
 				)}
 			</nav>
 			<div className="container" ref={attachRef} />
+			<footer ref={attachFooterRef}></footer>
 		</React.Fragment>
 	)
 }

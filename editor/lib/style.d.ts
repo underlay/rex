@@ -6,3 +6,4 @@ export declare type LayoutOptions = {
 };
 export declare const MakeLayout: ({ circle, directed, inverted, }: LayoutOptions) => cytoscape.LayoutOptions;
 export declare const Style: cytoscape.Stylesheet[];
+export declare const FooterStyle: cytoscape.Stylesheet[];
