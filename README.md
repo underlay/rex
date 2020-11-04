@@ -513,7 +513,7 @@ _:b1 <http://schema.org/dateModified> "2020-07-16T19:01:23.062Z"^^<http://www.w3
 ```
 _:b0 <http://schema.org/url> <http://example.com/john-doe> _:b1 .
 _:b0 <http://schema.org/name> "John Doe" _:b1 .
-_:b1 <http://schema.org/dateModified> "2020-07-16T19:01:23.062Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+_:b1 <http://schema.org/dateModified> "2020-08-21T05:04:44.831Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
 ```
 
 The data looks similar to the situation we had in the `rex:with` example, but the date we want to sort by is now a property of the _graph term_, not the subject!
